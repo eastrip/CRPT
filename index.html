@@ -21,7 +21,10 @@
       --accent: #c8ff00;
       --accent-dim: rgba(200, 255, 0, 0.08);
       --green: #00e676;
+      --yellow: #f5c542;
+      --orange: #ff8c00;
       --red: #ff4444;
+      --red-dark: #991a1a;
     }
 
     html, body {
@@ -35,7 +38,7 @@
     header { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; }
     .tab {
       flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
-      padding: 18px 12px; background: transparent; border: none;
+      padding: 12px 10px; background: transparent; border: none;
       border-bottom: 2px solid transparent;
       color: var(--text-dim); font-family: 'DM Mono', monospace; font-size: 10px;
       letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; transition: all 0.15s;
@@ -46,7 +49,7 @@
     .tab.active.pnl { color: var(--text); border-bottom-color: var(--text-dim); background: rgba(255,255,255,0.02); }
 
     /* ── Main ── */
-    main { flex: 1; overflow-y: auto; padding: 0 12px 14px; }
+    main { flex: 1; overflow-y: auto; padding: 0 8px 8px; }
     .section { display: none; }
     .section.active { display: block; }
 
@@ -54,8 +57,8 @@
     .section-header {
       display: flex; align-items: center; justify-content: flex-end; gap: 6px;
       position: sticky; top: 0; z-index: 10;
-      background: #000; padding: 10px 0;
-      border-bottom: 1px solid var(--border); margin-bottom: 10px;
+      background: #000; padding: 6px 0;
+      border-bottom: 1px solid var(--border); margin-bottom: 6px;
     }
     .section-label {
       font-family: 'DM Mono', monospace; font-size: 10px;
@@ -63,17 +66,31 @@
     }
     .header-actions { display: flex; gap: 8px; }
     .btn-sm {
-      display: flex; align-items: center; gap: 5px; padding: 7px 10px;
+      display: flex; align-items: center; gap: 5px; padding: 5px 8px;
       background: transparent; border: 1px solid var(--border); border-radius: 2px;
       color: var(--text-dim); font-family: 'DM Mono', monospace; font-size: 10px;
       letter-spacing: 0.1em; cursor: pointer; transition: all 0.15s; white-space: nowrap;
     }
     .btn-sm:hover { border-color: var(--border-bright); color: var(--text); }
     .btn-sm.accent:hover { border-color: rgba(200,255,0,0.4); color: var(--accent); }
-    .btn-sm.icon-only { padding: 7px 9px; }
+    .btn-sm.icon-only { padding: 5px 7px; }
     .btn-sm svg { width: 12px; height: 12px; flex-shrink: 0; }
     .btn-sm.spinning svg { animation: spin 1s linear infinite; }
     .btn-sm.sort-active { border-color: rgba(200,255,0,0.3); color: var(--accent); }
+    .filter-opt {
+      display: flex; align-items: center; gap: 6px; padding: 4px 6px;
+      font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.08em;
+      cursor: pointer; border-radius: 2px; white-space: nowrap; color: var(--text-dim);
+      transition: color 0.15s;
+    }
+    .filter-opt input { accent-color: var(--accent); cursor: pointer; margin: 0; }
+    #fopt-CEX:has(input:checked) { color: #fff; }
+    #fopt-DEX:has(input:checked) { color: #ff8c00; }
+    #fopt-WALLET:has(input:checked) { color: #4da6ff; }
+    .filter-btn { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.05em; }
+    .filter-btn.f-cex { border-color: rgba(255,255,255,0.4); color: #fff; background: rgba(255,255,255,0.06); }
+    .filter-btn.f-dex { border-color: rgba(255,140,0,0.5); color: #ff8c00; background: rgba(255,140,0,0.08); }
+    .filter-btn.f-wallet { border-color: rgba(77,166,255,0.5); color: #4da6ff; background: rgba(77,166,255,0.08); }
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -88,13 +105,13 @@
     /* ── Summary bar ── */
     .summary-bar {
       display: grid; grid-template-columns: 1fr 1fr;
-      gap: 8px; margin-bottom: 12px;
+      gap: 6px; margin-bottom: 6px;
     }
     .summary-cell {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 2px; padding: 10px 12px;
+      border-radius: 2px; padding: 6px 10px;
     }
-    .summary-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 3px; }
+    .summary-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1px; }
     .summary-value { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; }
     .summary-value.up { color: var(--green); }
     .summary-value.down { color: var(--red); }
@@ -103,8 +120,8 @@
     .crypto-list { display: flex; flex-direction: column; gap: 1px; }
     .crypto-card {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 2px; padding: 9px 12px;
-      display: flex; flex-direction: column; gap: 5px;
+      border-radius: 2px; padding: 6px 10px;
+      display: flex; flex-direction: column; gap: 3px;
     }
     .crypto-card:first-child { border-radius: 2px 2px 0 0; }
     .crypto-card + .crypto-card { border-top: none; border-radius: 0; }
@@ -115,37 +132,40 @@
       display: flex; align-items: center; gap: 0;
     }
     .card-icon {
-      width: 20px; height: 20px; border-radius: 50%;
-      object-fit: cover; flex-shrink: 0; margin-right: 6px;
+      width: 16px; height: 16px; border-radius: 50%;
+      object-fit: cover; flex-shrink: 0; margin-right: 5px;
       background: var(--border); /* placeholder color while loading */
     }
     .card-icon-placeholder {
-      width: 20px; height: 20px; border-radius: 50%;
-      background: var(--border); flex-shrink: 0; margin-right: 6px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--border); flex-shrink: 0; margin-right: 5px;
       display: flex; align-items: center; justify-content: center;
       font-size: 8px; font-weight: 700; color: var(--text-dim);
       font-family: 'DM Mono', monospace;
     }
     .card-symbol {
-      font-size: 13px; font-weight: 700; letter-spacing: 0.02em;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.02em;
       white-space: nowrap; flex: 0 0 auto; margin-right: 6px;
     }
+    .cat-cex { color: #ffffff; }
+    .cat-dex { color: #ff8c00; }
+    .cat-wallet { color: #4da6ff; }
     .card-pair {
       font-family: 'DM Mono', monospace; font-size: 9px;
       color: var(--text-muted); flex: 1; /* pushes rest right */
     }
     .card-buy {
-      font-family: 'DM Mono', monospace; font-size: 11px;
+      font-family: 'DM Mono', monospace; font-size: 10px;
       color: var(--text-muted); white-space: nowrap; margin-right: 10px;
     }
     .card-price {
-      font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500;
+      font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500;
       color: var(--text); white-space: nowrap; margin-right: 10px;
     }
 
     /* Row 2: pnl | 24h | spacer | buttons */
     .card-row2 {
-      display: flex; align-items: center; gap: 10px;
+      display: flex; align-items: center; gap: 8px;
     }
     .card-stat { display: flex; align-items: center; gap: 4px; }
     .stat-lbl {
@@ -159,27 +179,31 @@
     }
     .stat-val.up { color: var(--green); }
     .stat-val.down { color: var(--red); }
+    .stat-val.pnl-yellow { color: var(--yellow); }
+    .stat-val.pnl-orange { color: var(--orange); }
+    .stat-val.pnl-red { color: var(--red); }
+    .stat-val.pnl-darkred { color: var(--red-dark); }
 
     /* ── Card actions ── */
     .card-actions { display: flex; gap: 4px; flex-shrink: 0; }
     .card-btn {
       display: flex; align-items: center; justify-content: center;
-      width: 24px; height: 24px;
+      width: 20px; height: 20px;
       background: transparent; border: 1px solid var(--border); border-radius: 2px;
       color: var(--text-muted); cursor: pointer; transition: all 0.15s; flex-shrink: 0;
     }
-    .card-btn svg { width: 10px; height: 10px; }
+    .card-btn svg { width: 9px; height: 9px; }
     .card-btn.edit:hover { border-color: rgba(200,255,0,0.3); color: var(--accent); }
     .card-btn.del:hover { border-color: rgba(255,68,68,0.3); color: var(--red); }
 
     /* ── Footer ── */
     footer {
-      padding: 14px 16px; border-top: 1px solid var(--border);
+      padding: 9px 12px; border-top: 1px solid var(--border);
       display: flex; align-items: center; justify-content: center;
       gap: 8px; flex-shrink: 0;
     }
     .footer-btn {
-      display: flex; align-items: center; gap: 7px; padding: 9px 16px;
+      display: flex; align-items: center; gap: 6px; padding: 7px 12px;
       background: transparent; border: 1px solid var(--border); border-radius: 2px;
       color: var(--text-dim); font-family: 'DM Mono', monospace; font-size: 10px;
       letter-spacing: 0.12em; cursor: pointer; transition: all 0.15s;
@@ -187,6 +211,17 @@
     .footer-btn:hover { border-color: var(--border-bright); color: var(--text); }
     .footer-btn.save:hover { border-color: rgba(200,255,0,0.4); color: var(--accent); }
     .footer-btn svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+    /* ── Category buttons ── */
+    .cat-btn {
+      flex: 1; padding: 7px 0; background: transparent;
+      border: 1px solid var(--border); border-radius: 2px;
+      color: var(--text-dim); font-family: 'DM Mono', monospace; font-size: 10px;
+      letter-spacing: 0.1em; cursor: pointer; transition: all 0.15s;
+    }
+    .cat-btn.active[data-cat="CEX"] { border-color: #fff; color: #fff; background: rgba(255,255,255,0.06); }
+    .cat-btn.active[data-cat="DEX"] { border-color: #ff8c00; color: #ff8c00; background: rgba(255,140,0,0.08); }
+    .cat-btn.active[data-cat="WALLET"] { border-color: #4da6ff; color: #4da6ff; background: rgba(77,166,255,0.08); }
 
     /* ── Modals ── */
     .modal-overlay {
@@ -302,6 +337,14 @@
     <div class="section" id="section-pnl">
       <div class="section-header">
         <div class="header-actions">
+          <div style="position:relative">
+            <button class="btn-sm filter-btn icon-only" id="filterBtn" onclick="toggleFilterPopup(event)" title="Filtrer par catégorie"><span id="filterLabel">⊟</span></button>
+            <div id="filterPopup" onclick="event.stopPropagation()" style="display:none;position:absolute;top:calc(100% + 6px);right:0;background:#0d0d0d;border:1px solid #2e2e2e;border-radius:2px;padding:6px;z-index:50;min-width:90px;gap:4px;flex-direction:column">
+              <label class="filter-opt" id="fopt-CEX"><input type="checkbox" id="fchk-CEX" onchange="toggleCat('CEX')"> CEX</label>
+              <label class="filter-opt" id="fopt-DEX"><input type="checkbox" id="fchk-DEX" onchange="toggleCat('DEX')"> DEX</label>
+              <label class="filter-opt" id="fopt-WALLET"><input type="checkbox" id="fchk-WALLET" onchange="toggleCat('WALLET')"> WALLET</label>
+            </div>
+          </div>
           <button class="btn-sm sort-btn" id="sortPnlBtn" onclick="setSort('pnl')" title="Trier par PnL">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="12" y1="5" x2="12" y2="19"/>
@@ -373,6 +416,14 @@
         <label class="form-label">Symbole (ex: BTC, ETH, SOL)</label>
         <input class="form-input" id="inputSymbol" type="text" placeholder="BTC"
           autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" oninput="this.value=this.value.toUpperCase()" />
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Catégorie</label>
+        <div style="display:flex;gap:6px">
+          <button type="button" class="cat-btn" id="catCEX" onclick="selectCat('CEX')" data-cat="CEX">CEX</button>
+          <button type="button" class="cat-btn" id="catDEX" onclick="selectCat('DEX')" data-cat="DEX">DEX</button>
+          <button type="button" class="cat-btn" id="catWALLET" onclick="selectCat('WALLET')" data-cat="WALLET">WALLET</button>
+        </div>
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -447,6 +498,14 @@
   let selectedFile = null;
   let liveData = {};
   let editingIdx = -1; // -1 = add mode, >= 0 = edit mode
+  let currentCategory = 'CEX';
+
+  function selectCat(cat) {
+    currentCategory = cat;
+    ['CEX','DEX','WALLET'].forEach(c => {
+      document.getElementById('cat' + c).classList.toggle('active', c === cat);
+    });
+  }
 
   // ── Tabs ──
   function switchTab(tab) {
@@ -460,6 +519,44 @@
   }
 
   let currentSort = localStorage.getItem('portfolioSort') || null;
+  let activeFilters = new Set(JSON.parse(localStorage.getItem('portfolioFilters') || 'null') || []);
+
+  function toggleFilterPopup(e) {
+    e.stopPropagation();
+    const p = document.getElementById('filterPopup');
+    p.style.display = p.style.display === 'flex' ? 'none' : 'flex';
+  }
+
+  function toggleCat(cat) {
+    if (activeFilters.has(cat)) activeFilters.delete(cat);
+    else activeFilters.add(cat);
+    localStorage.setItem('portfolioFilters', JSON.stringify([...activeFilters]));
+    updateFilterUI();
+    renderCryptos();
+  }
+
+  function updateFilterUI() {
+    const btn = document.getElementById('filterBtn');
+    const lbl = document.getElementById('filterLabel');
+    if (!btn || !lbl) return;
+    ['CEX','DEX','WALLET'].forEach(c => {
+      const chk = document.getElementById('fchk-' + c);
+      if (chk) chk.checked = activeFilters.has(c);
+    });
+    const n = activeFilters.size;
+    btn.className = 'btn-sm filter-btn icon-only';
+    if (n === 0) { lbl.textContent = '⊟'; }
+    else if (n === 1) {
+      const cat = [...activeFilters][0];
+      if (cat === 'CEX') { lbl.textContent = 'CEX'; btn.classList.add('f-cex'); }
+      else if (cat === 'DEX') { lbl.textContent = 'DEX'; btn.classList.add('f-dex'); }
+      else { lbl.textContent = 'WAL'; btn.classList.add('f-wallet'); }
+    } else {
+      lbl.textContent = n + '▼';
+      btn.style.color = 'var(--accent)';
+      btn.style.borderColor = 'rgba(200,255,0,0.3)';
+    }
+  }
 
   function setSort(type) {
     currentSort = currentSort === type ? null : type;
@@ -597,8 +694,10 @@
     if (!appData.cryptos.length) { empty.style.display = 'flex'; return; }
     empty.style.display = 'none';
 
-    // Sort
-    let sorted = [...appData.cryptos];
+    // Filter
+    let sorted = activeFilters.size > 0
+      ? appData.cryptos.filter(c => activeFilters.has(c.category || 'CEX'))
+      : [...appData.cryptos];
     if (currentSort === 'pnl') {
       sorted.sort((a, b) => {
         const la = liveData[a.symbol] || {}, lb = liveData[b.symbol] || {};
@@ -627,7 +726,14 @@
 
       const card = document.createElement('div');
       card.className = 'crypto-card';
-      const pnlClass = pnl == null ? '' : pnl >= 0 ? 'up' : 'down';
+      const pnlClass = (() => {
+        if (pnl == null || pnlPct == null) return '';
+        if (pnlPct >= 0) return 'up';
+        if (pnlPct >= -25) return 'pnl-yellow';
+        if (pnlPct >= -50) return 'pnl-orange';
+        if (pnlPct >= -75) return 'pnl-red';
+        return 'pnl-darkred';
+      })();
       const chgClass = change == null ? '' : change >= 0 ? 'up' : 'down';
       const pnlStr = pnl == null ? '—' : (pnl >= 0 ? '+' : '-') + '$' + fmt(Math.abs(pnl)) + (pnlPct != null ? ' (' + (pnlPct >= 0 ? '+' : '') + pnlPct.toFixed(1) + '%)' : '');
       const chgStr = change == null ? '—' : (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
@@ -638,7 +744,7 @@
       card.innerHTML = `
         <div class="card-row1">
           ${iconHtml}
-          <span class="card-symbol">${crypto.symbol}</span>
+          <span class="card-symbol cat-${(crypto.category||'CEX').toLowerCase()}">${crypto.symbol}</span>
           <span class="card-pair">/USDC</span>
           <span class="card-buy">$${fmt(crypto.buyPrice)}</span>
           <span class="card-price">${price != null ? '$' + fmt(price) : '<span class="loading-dot"></span>'}</span>
@@ -729,6 +835,7 @@
     document.getElementById('inputSymbol').disabled = false;
     document.getElementById('inputBuyPrice').value = '';
     document.getElementById('inputQty').value = '';
+    selectCat('CEX');
     document.getElementById('cryptoModal').classList.add('open');
     setTimeout(() => document.getElementById('inputSymbol').focus(), 300);
   }
@@ -743,6 +850,7 @@
     document.getElementById('inputSymbol').disabled = false;
     document.getElementById('inputBuyPrice').value = c.buyPrice;
     document.getElementById('inputQty').value = c.qty;
+    selectCat(c.category || 'CEX');
     document.getElementById('cryptoModal').classList.add('open');
     setTimeout(() => document.getElementById('inputBuyPrice').focus(), 300);
   }
@@ -755,17 +863,18 @@
     const symbol = document.getElementById('inputSymbol').value.trim().toUpperCase();
     const buyPrice = parseFloat(document.getElementById('inputBuyPrice').value);
     const qty = parseFloat(document.getElementById('inputQty').value);
+    const category = currentCategory;
 
     if (!symbol) { showToast('Symbole requis', 'error'); return; }
     if (isNaN(buyPrice) || buyPrice <= 0) { showToast("Prix d'achat invalide", 'error'); return; }
     if (isNaN(qty) || qty <= 0) { showToast('Quantité invalide', 'error'); return; }
 
     if (editingIdx >= 0) {
-      appData.cryptos[editingIdx] = { ...appData.cryptos[editingIdx], symbol, buyPrice, qty };
+      appData.cryptos[editingIdx] = { ...appData.cryptos[editingIdx], symbol, buyPrice, qty, category };
       saveData(); closeCryptoModal(); renderCryptos();
       showToast('Crypto modifiée', 'success');
     } else {
-      appData.cryptos.push({ symbol, buyPrice, qty });
+      appData.cryptos.push({ symbol, buyPrice, qty, category });
       saveData(); closeCryptoModal(); renderCryptos();
       // Restart stream + fetch icon for new symbol
       prefetchIcons([symbol]);
@@ -810,21 +919,28 @@
 
   // ── Backup ──
   async function doSave() {
+    const btn = document.querySelector('.footer-btn.save');
+    if (btn) btn.style.pointerEvents = 'none';
     const now = new Date();
     const d = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
     const json = JSON.stringify({ ...appData, exportedAt: now.toISOString() }, null, 2);
     const filename = `sauvegarde-portfolio-${d}.json`;
     const file = new File([json], filename, { type: 'application/json' });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file] }); }
-      catch (e) { if (e.name !== 'AbortError') showToast('Erreur de partage', 'error'); }
-    } else {
-      const url = URL.createObjectURL(file);
-      const a = document.createElement('a');
-      a.href = url; a.download = filename;
-      document.body.appendChild(a); a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    try {
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file] });
+      } else {
+        const url = URL.createObjectURL(file);
+        const a = document.createElement('a');
+        a.href = url; a.download = filename;
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+      }
+    } catch (e) {
+      if (e.name !== 'AbortError') showToast('Erreur de partage', 'error');
+    } finally {
+      setTimeout(() => { if (btn) btn.style.pointerEvents = ''; }, 1000);
     }
   }
 
@@ -880,8 +996,13 @@
     toastTimer = setTimeout(() => { t.className = 'toast'; }, 2500);
   }
 
+  document.addEventListener('click', () => {
+    const p = document.getElementById('filterPopup');
+    if (p) p.style.display = 'none';
+  });
+
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { closeCryptoModal(); closeRestoreModal(); closeConfirmModal(); }
+    if (e.key === 'Escape') { closeCryptoModal(); closeRestoreModal(); closeConfirmModal(); const p = document.getElementById('filterPopup'); if(p) p.style.display='none'; }
     if (e.key === 'Enter' && document.getElementById('cryptoModal').classList.contains('open')) saveCrypto();
   });
 
