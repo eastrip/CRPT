@@ -579,7 +579,7 @@
       card.className = 'crypto-card';
       const pnlClass = pnl == null ? '' : pnl >= 0 ? 'up' : 'down';
       const chgClass = change == null ? '' : change >= 0 ? 'up' : 'down';
-      const pnlStr = pnl == null ? '—' : (pnl >= 0 ? '+' : '-') + '$' + fmt(Math.abs(pnl)) + (pnlPct != null ? ' / ' + (pnlPct >= 0 ? '+' : '') + pnlPct.toFixed(1) + '%' : '');
+      const pnlStr = pnl == null ? '—' : (pnl >= 0 ? '+' : '-') + '$' + fmt(Math.abs(pnl)) + (pnlPct != null ? ' (' + (pnlPct >= 0 ? '+' : '') + pnlPct.toFixed(1) + '%)' : '');
       const chgStr = change == null ? '—' : (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
       card.innerHTML = `
         <div class="card-row1">
@@ -647,7 +647,7 @@
       let totalBuyAmt = 0;
       appData.cryptos.forEach(c => { if ((liveData[c.symbol] || {}).price != null) totalBuyAmt += c.buyPrice * c.qty; });
       const totalPnlPct = totalBuyAmt > 0 ? (totalPnl / totalBuyAmt) * 100 : null;
-      sumPnlEl.textContent = (totalPnl >= 0 ? '+' : '') + '$' + fmt(Math.abs(totalPnl)) + (totalPnlPct != null ? ' / ' + (totalPnlPct >= 0 ? '+' : '') + totalPnlPct.toFixed(1) + '%' : '');
+      sumPnlEl.textContent = (totalPnl >= 0 ? '+' : '') + '$' + fmt(Math.abs(totalPnl)) + (totalPnlPct != null ? ' (' + (totalPnlPct >= 0 ? '+' : '') + totalPnlPct.toFixed(1) + '%)' : '');
       sumPnlEl.className = 'summary-value ' + (totalPnl >= 0 ? 'up' : 'down');
     } else { sumPnlEl.textContent = '—'; sumPnlEl.className = 'summary-value'; }
     if (has24h) {
