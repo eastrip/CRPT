@@ -480,46 +480,53 @@
 
   async function fetchPrices(symbols) {
     if (!symbols.length) return {};
+    const result = {};
 
-    // Try CoinGecko first
-    try {
-      const ids = symbols.map(cgId).join(',');
-      const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`);
-      if (res.ok) {
+    // Kraken — pas de CORS, supporte les principaux tokens
+    const KRAKEN_MAP = {
+      BTC:'XXBTZUSD', ETH:'XETHZUSD', SOL:'SOLUSD', BNB:'BNBUSD',
+      XRP:'XXRPZUSD', ADA:'ADAUSD', DOGE:'XDOGEEUR', AVAX:'AVAXUSD',
+      DOT:'DOTUSD', MATIC:'MATICUSD', LINK:'LINKUSD', UNI:'UNIUSD',
+      ATOM:'ATOMUSD', LTC:'XLTCZUSD', NEAR:'NEARUSD', APT:'APTUSD',
+      ARB:'ARBUSD', OP:'OPUSD', TIA:'TIAUSD', INJ:'INJUSD',
+      TON:'TONUSD', PEPE:'PEPEUSD', WIF:'WIFUSD',
+      FET:'FETUSD', RENDER:'RENDERUSD', TAO:'TAOUSD',
+      AAVE:'AAVEUSD', MKR:'MKRUSD', CRV:'CRVUSD', LDO:'LDOUSD',
+      FTM:'FTMUSD', ALGO:'ALGOUSD', HBAR:'HBARUSD', ICP:'ICPUSD',
+      FIL:'FILUSD', GRT:'GRTUSD', STX:'STXUSD', RUNE:'RUNEUSD',
+      XLM:'XXLMZUSD', TRX:'TRXUSD', XMR:'XXMRZUSD', DASH:'DASHUSD',
+      ZEC:'XZECZUSD'
+    };
+
+    await Promise.all(symbols.map(async s => {
+      const sym = s.toUpperCase();
+      const pair = KRAKEN_MAP[sym] || (sym + 'USD');
+      try {
+        const res = await fetch(`https://api.kraken.com/0/public/Ticker?pair=${pair}`);
+        if (!res.ok) throw new Error();
         const data = await res.json();
-        const result = {};
-        symbols.forEach(s => {
-          const id = cgId(s);
-          if (data[id]) result[s.toUpperCase()] = { price: data[id].usd, change24h: data[id].usd_24h_change };
-        });
-        if (Object.keys(result).length) return result;
-      }
-    } catch {}
-
-    // Fallback: Binance API (no CORS issues)
-    try {
-      const result = {};
-      await Promise.all(symbols.map(async s => {
-        const sym = s.toUpperCase();
+        if (data.error && data.error.length) throw new Error(data.error[0]);
+        const key = Object.keys(data.result)[0];
+        const ticker = data.result[key];
+        const price = parseFloat(ticker.c[0]);
+        const open = parseFloat(ticker.o);
+        const change24h = open > 0 ? ((price - open) / open) * 100 : 0;
+        result[sym] = { price, change24h };
+      } catch {
+        // Fallback individuel CoinGecko
         try {
-          const [tickerRes, statsRes] = await Promise.all([
-            fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${sym}USDT`),
-            fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${sym}USDT`)
-          ]);
-          if (tickerRes.ok && statsRes.ok) {
-            const ticker = await tickerRes.json();
-            const stats = await statsRes.json();
-            result[sym] = {
-              price: parseFloat(ticker.price),
-              change24h: parseFloat(stats.priceChangePercent)
-            };
+          const id = cgId(sym);
+          const res2 = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd&include_24hr_change=true`);
+          if (res2.ok) {
+            const d = await res2.json();
+            if (d[id]) result[sym] = { price: d[id].usd, change24h: d[id].usd_24h_change };
           }
         } catch {}
-      }));
-      return result;
-    } catch {}
+      }
+    }));
 
-    throw new Error('Toutes les APIs sont indisponibles');
+    if (!Object.keys(result).length) throw new Error('APIs indisponibles');
+    return result;
   }
 
   async function refreshPrices() {
