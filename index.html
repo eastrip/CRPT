@@ -546,7 +546,6 @@
   </div>
 </div>
 
-
 <!-- Confirm Delete Modal -->
 <div class="modal-overlay" id="confirmModal">
   <div class="modal" style="max-width:340px;margin:0 auto 0;">
@@ -943,6 +942,7 @@
 
   function askDelete(idx) {
     pendingDeleteIdx = idx;
+    pendingDeleteType = 'crypto';
     const sym = appData.cryptos[idx].symbol;
     document.getElementById('confirmText').textContent = 'Supprimer ' + sym + '/USDC ? Cette action est irréversible.';
     document.getElementById('confirmModal').classList.add('open');
@@ -1020,7 +1020,8 @@
       try {
         appData = JSON.parse(e.target.result);
         if (!appData.cryptos) appData.cryptos = [];
-        saveData(); renderCryptos(); closeRestoreModal();
+        if (!appData.investments) appData.investments = [];
+        saveData(); renderCryptos(); renderInvestments(); closeRestoreModal();
         showToast('Données restaurées', 'success');
       } catch { showToast('Fichier JSON invalide', 'error'); }
     };
@@ -1057,8 +1058,6 @@
     if (e.key === 'Escape') { closeCryptoModal(); closeRestoreModal(); closeConfirmModal(); }
     if (e.key === 'Enter' && document.getElementById('cryptoModal').classList.contains('open')) saveCrypto();
   });
-
-
 
   // ── Investment filters ──
   let activeInvCats = new Set(); // empty = show all
@@ -1181,33 +1180,30 @@
 
   function askDeleteInvDirect(idx) {
     pendingDeleteIdx = idx;
-    window._deleteInvPending = true;
+    pendingDeleteType = 'inv';
     document.getElementById('confirmText').textContent = 'Supprimer cet investissement ? Cette action est irréversible.';
     document.getElementById('confirmModal').classList.add('open');
   }
 
   function askDeleteInv() {
     pendingDeleteIdx = editingInvIdx;
+    pendingDeleteType = 'inv';
     document.getElementById('confirmText').textContent = 'Supprimer cet investissement ? Cette action est irréversible.';
     closeInvModal();
     setTimeout(() => document.getElementById('confirmModal').classList.add('open'), 200);
-    // Override doConfirmedDelete for this context
-    window._deleteInvPending = true;
   }
 
-  const _origDoConfirmedDelete = window.doConfirmedDelete;
+  let pendingDeleteType = 'crypto'; // 'crypto' | 'inv'
 
   function doConfirmedDelete() {
-    if (window._deleteInvPending) {
-      window._deleteInvPending = false;
+    if (pendingDeleteType === 'inv') {
       appData.investments.splice(pendingDeleteIdx, 1);
       saveData(); renderInvestments();
-      closeConfirmModal();
       showToast('Investissement supprimé', 'success');
     } else {
       deleteCrypto(pendingDeleteIdx);
-      closeConfirmModal();
     }
+    closeConfirmModal();
   }
 
   function renderInvestments() {
@@ -1233,10 +1229,10 @@
     }
     const sorted = filtered.sort((a, b) => b.inv.date.localeCompare(a.inv.date));
 
-    updateInvFilterUI();
-    if (!appData.investments.length) { empty.style.display = 'flex'; return; }
+    if (!appData.investments.length) { empty.style.display = 'flex'; updateInvFilterUI(); return; }
     empty.style.display = 'none';
-    if (!sorted.length) return; // filtered to nothing, cards cleared above
+    updateInvFilterUI();
+    if (!sorted.length) return;
 
     sorted.forEach(({ inv, i }) => {
       const catClass = 'cat-' + (inv.category || 'CEX').toLowerCase();
@@ -1290,14 +1286,14 @@
 
   // ── Init ──
   try {
-    const savedTab = localStorage.getItem('portfolioTab') || 'investments';
     updateSortUI();
+    updateFilterUI();
+    updateInvFilterUI();
     renderCryptos();
-    if (savedTab === 'pnl') {
-      switchTab('pnl');
-    } else {
-      prefetchIcons(appData.cryptos.map(c => c.symbol));
-    }
+    renderInvestments();
+    const savedTab = localStorage.getItem('portfolioTab') || 'investments';
+    if (savedTab === 'pnl') switchTab('pnl');
+    else prefetchIcons(appData.cryptos.map(c => c.symbol));
   } catch(e) {
     console.error('Init error:', e);
   }
