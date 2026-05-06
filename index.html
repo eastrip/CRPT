@@ -615,7 +615,7 @@
     if (isNaN(qty) || qty <= 0) { showToast('Quantité invalide', 'error'); return; }
 
     if (editingIdx >= 0) {
-      appData.cryptos[editingIdx] = { ...appData.cryptos[editingIdx], buyPrice, qty };
+      appData.cryptos[editingIdx] = { ...appData.cryptos[editingIdx], symbol, buyPrice, qty };
       saveData(); closeCryptoModal(); renderCryptos();
       showToast('Crypto modifiée', 'success');
     } else {
