@@ -444,6 +444,7 @@
     document.getElementById(`section-${tab}`).classList.add('active');
     localStorage.setItem('portfolioTab', tab);
     if (tab === 'pnl') refreshPrices();
+    else if (ws) { ws.close(); ws = null; }
   }
 
   let currentSort = localStorage.getItem('portfolioSort') || null;
@@ -478,67 +479,64 @@
   };
   function cgId(s) { return CGIDS[s.toUpperCase()] || s.toLowerCase(); }
 
-  async function fetchPrices(symbols) {
-    if (!symbols.length) return {};
-    const result = {};
+  // ── Binance WebSocket ──
+  let ws = null;
+  let wsSymbols = [];
+  let wsConnected = false;
 
-    // Kraken — pas de CORS, supporte les principaux tokens
-    const KRAKEN_MAP = {
-      BTC:'XXBTZUSD', ETH:'XETHZUSD', SOL:'SOLUSD', BNB:'BNBUSD',
-      XRP:'XXRPZUSD', ADA:'ADAUSD', DOGE:'XDOGEEUR', AVAX:'AVAXUSD',
-      DOT:'DOTUSD', MATIC:'MATICUSD', LINK:'LINKUSD', UNI:'UNIUSD',
-      ATOM:'ATOMUSD', LTC:'XLTCZUSD', NEAR:'NEARUSD', APT:'APTUSD',
-      ARB:'ARBUSD', OP:'OPUSD', TIA:'TIAUSD', INJ:'INJUSD',
-      TON:'TONUSD', PEPE:'PEPEUSD', WIF:'WIFUSD',
-      FET:'FETUSD', RENDER:'RENDERUSD', TAO:'TAOUSD',
-      AAVE:'AAVEUSD', MKR:'MKRUSD', CRV:'CRVUSD', LDO:'LDOUSD',
-      FTM:'FTMUSD', ALGO:'ALGOUSD', HBAR:'HBARUSD', ICP:'ICPUSD',
-      FIL:'FILUSD', GRT:'GRTUSD', STX:'STXUSD', RUNE:'RUNEUSD',
-      XLM:'XXLMZUSD', TRX:'TRXUSD', XMR:'XXMRZUSD', DASH:'DASHUSD',
-      ZEC:'XZECZUSD'
+  function binanceStream(symbols) {
+    if (!symbols.length) return;
+    wsSymbols = symbols.map(s => s.toLowerCase());
+
+    if (ws) { ws.close(); ws = null; }
+
+    const streams = wsSymbols.map(s => `${s}usdt@miniTicker`).join('/');
+    ws = new WebSocket(`wss://stream.binance.com:9443/stream?streams=${streams}`);
+
+    ws.onopen = () => {
+      wsConnected = true;
+      document.getElementById('refreshBtn').classList.remove('spinning');
     };
 
-    await Promise.all(symbols.map(async s => {
-      const sym = s.toUpperCase();
-      const pair = KRAKEN_MAP[sym] || (sym + 'USD');
+    ws.onmessage = (event) => {
       try {
-        const res = await fetch(`https://api.kraken.com/0/public/Ticker?pair=${pair}`);
-        if (!res.ok) throw new Error();
-        const data = await res.json();
-        if (data.error && data.error.length) throw new Error(data.error[0]);
-        const key = Object.keys(data.result)[0];
-        const ticker = data.result[key];
-        const price = parseFloat(ticker.c[0]);
-        const open = parseFloat(ticker.o);
+        const msg = JSON.parse(event.data);
+        const d = msg.data;
+        if (!d || !d.s) return;
+        const sym = d.s.replace('USDT','').toUpperCase();
+        const price = parseFloat(d.c);
+        const open = parseFloat(d.o);
         const change24h = open > 0 ? ((price - open) / open) * 100 : 0;
-        result[sym] = { price, change24h };
-      } catch {
-        // Fallback individuel CoinGecko
-        try {
-          const id = cgId(sym);
-          const res2 = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd&include_24hr_change=true`);
-          if (res2.ok) {
-            const d = await res2.json();
-            if (d[id]) result[sym] = { price: d[id].usd, change24h: d[id].usd_24h_change };
-          }
-        } catch {}
-      }
-    }));
+        liveData[sym] = { price, change24h };
+        renderCryptos();
+      } catch {}
+    };
 
-    if (!Object.keys(result).length) throw new Error('APIs indisponibles');
-    return result;
+    ws.onerror = () => {
+      wsConnected = false;
+      showToast('Erreur de connexion', 'error');
+      document.getElementById('refreshBtn').classList.remove('spinning');
+    };
+
+    ws.onclose = () => {
+      wsConnected = false;
+    };
   }
 
-  async function refreshPrices() {
+  function refreshPrices() {
     if (!appData.cryptos.length) return;
     const btn = document.getElementById('refreshBtn');
     btn.classList.add('spinning');
-    try {
-      liveData = await fetchPrices(appData.cryptos.map(c => c.symbol));
-      renderCryptos();
-      showToast('Prix actualisés', 'success');
-    } catch { showToast('Erreur de connexion', 'error'); }
-    finally { btn.classList.remove('spinning'); }
+    const symbols = appData.cryptos.map(c => c.symbol);
+    binanceStream(symbols);
+    // Spinner stops on ws.onopen or ws.onerror
+    setTimeout(() => btn.classList.remove('spinning'), 5000);
+  }
+
+  function restartStream() {
+    if (appData.cryptos.length) {
+      binanceStream(appData.cryptos.map(c => c.symbol));
+    }
   }
 
   // ── Render ──
@@ -680,7 +678,7 @@
     document.getElementById('cryptoModal').classList.remove('open');
   }
 
-  async function saveCrypto() {
+  async function saveCrypto() { // kept async for compat
     const symbol = document.getElementById('inputSymbol').value.trim().toUpperCase();
     const buyPrice = parseFloat(document.getElementById('inputBuyPrice').value);
     const qty = parseFloat(document.getElementById('inputQty').value);
@@ -696,11 +694,8 @@
     } else {
       appData.cryptos.push({ symbol, buyPrice, qty });
       saveData(); closeCryptoModal(); renderCryptos();
-      try {
-        const newData = await fetchPrices([symbol]);
-        Object.assign(liveData, newData);
-        renderCryptos();
-      } catch {}
+      // Restart stream to include new symbol
+      restartStream();
     }
   }
 
@@ -819,8 +814,10 @@
   // ── Init ──
   const savedTab = localStorage.getItem('portfolioTab') || 'investments';
   if (savedTab !== 'investments') switchTab(savedTab);
+  else { updateSortUI(); renderCryptos(); }
   updateSortUI();
   renderCryptos();
+  if (savedTab === 'pnl' && appData.cryptos.length) refreshPrices();
 </script>
 </body>
 </html>
