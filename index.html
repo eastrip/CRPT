@@ -77,20 +77,10 @@
     .btn-sm svg { width: 12px; height: 12px; flex-shrink: 0; }
     .btn-sm.spinning svg { animation: spin 1s linear infinite; }
     .btn-sm.sort-active { border-color: rgba(200,255,0,0.3); color: var(--accent); }
-    .filter-opt {
-      display: flex; align-items: center; gap: 6px; padding: 4px 6px;
-      font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.08em;
-      cursor: pointer; border-radius: 2px; white-space: nowrap; color: var(--text-dim);
-      transition: color 0.15s;
-    }
-    .filter-opt input { accent-color: var(--accent); cursor: pointer; margin: 0; }
-    #fopt-CEX:has(input:checked) { color: #fff; }
-    #fopt-DEX:has(input:checked) { color: #ff8c00; }
-    #fopt-WALLET:has(input:checked) { color: #4da6ff; }
     .filter-btn { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.05em; }
-    .filter-btn.f-cex { border-color: rgba(255,255,255,0.4); color: #fff; background: rgba(255,255,255,0.06); }
-    .filter-btn.f-dex { border-color: rgba(255,140,0,0.5); color: #ff8c00; background: rgba(255,140,0,0.08); }
-    .filter-btn.f-wallet { border-color: rgba(77,166,255,0.5); color: #4da6ff; background: rgba(77,166,255,0.08); }
+    #filterCEX.active { border-color: rgba(255,255,255,0.4); color: #fff; background: rgba(255,255,255,0.06); }
+    #filterDEX.active { border-color: rgba(255,140,0,0.5); color: #ff8c00; background: rgba(255,140,0,0.08); }
+    #filterWALLET.active { border-color: rgba(77,166,255,0.5); color: #4da6ff; background: rgba(77,166,255,0.08); }
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -101,6 +91,33 @@
     }
     .empty-state .empty-icon { font-size: 26px; opacity: 0.12; }
     .empty-state p { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--text-muted); }
+
+    /* ── Investments ── */
+    .inv-summary-cell {
+      flex: 1; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 2px; padding: 6px 10px;
+    }
+    .inv-list { display: flex; flex-direction: column; gap: 1px; }
+    .inv-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 2px; padding: 8px 10px;
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .inv-card:first-child { border-radius: 2px 2px 0 0; }
+    .inv-card + .inv-card { border-top: none; border-radius: 0; }
+    .inv-card:last-child { border-radius: 0 0 2px 2px; }
+    .inv-row1 { display: flex; align-items: center; gap: 6px; }
+    .inv-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); flex: 1; }
+    .inv-platform {
+      font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.05em;
+      padding: 2px 6px; border-radius: 2px; border: 1px solid var(--border);
+    }
+    .inv-platform.cat-cex { color: #fff; border-color: rgba(255,255,255,0.2); }
+    .inv-platform.cat-dex { color: #ff8c00; border-color: rgba(255,140,0,0.3); }
+    .inv-platform.cat-wallet { color: #4da6ff; border-color: rgba(77,166,255,0.3); }
+    .inv-row2 { display: flex; align-items: center; gap: 10px; }
+    .inv-amount-eur { font-family: 'DM Mono', monospace; font-size: 12px; color: #4da6ff; }
+    .inv-amount-usd { font-family: 'DM Mono', monospace; font-size: 12px; color: #00e676; }
 
     /* ── Summary bar ── */
     .summary-bar {
@@ -319,32 +336,50 @@
       <span>◈</span> Investissements
     </button>
     <button class="tab pnl" onclick="switchTab('pnl')">
-      <span>▲</span> PnL (<span id="cryptoCount">0</span>)
+      <span>▲</span> <span style="letter-spacing:0">PnL (<span id="cryptoCount">0</span>)</span>
     </button>
   </header>
 
   <main>
     <div class="section active" id="section-investments">
-      <div class="section-header">
-        <span class="section-label">Investissements</span>
+      <div class="section-header" style="position:sticky;top:0;background:#000;padding:10px 0 6px;border-bottom:1px solid var(--border);margin-bottom:8px;z-index:10">
+        <div style="display:flex;gap:8px;flex:1">
+          <div class="inv-summary-cell" style="border-color:rgba(77,166,255,0.3)">
+            <div class="summary-label">INVESTIS €</div>
+            <div class="summary-value" id="totalEur" style="color:#4da6ff">—</div>
+          </div>
+          <div class="inv-summary-cell" style="border-color:rgba(0,230,118,0.3)">
+            <div class="summary-label">INVESTIS $</div>
+            <div class="summary-value" id="totalUsd" style="color:#00e676">—</div>
+          </div>
+        </div>
+        <button class="btn-sm accent icon-only" onclick="openInvModal()" style="flex-shrink:0" title="Ajouter">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </button>
       </div>
-      <div class="empty-state">
-        <div class="empty-icon">◈</div>
-        <p>Aucun investissement</p>
+      <!-- Filter row -->
+      <div id="invFilterRow" style="display:flex;gap:6px;padding:6px 0 8px;border-bottom:1px solid var(--border);margin-bottom:8px">
+        <button class="btn-sm sort-active" id="invFilterAll" onclick="resetInvFilter()">TOUS</button>
+        <button class="btn-sm filter-btn" id="invFilterCEX" onclick="toggleInvFilter('CEX')">CEX</button>
+        <button class="btn-sm filter-btn" id="invFilterDEX" onclick="toggleInvFilter('DEX')">DEX</button>
+        <button class="btn-sm filter-btn" id="invFilterWALLET" onclick="toggleInvFilter('WALLET')">WAL</button>
+      </div>
+      <div class="inv-list" id="invList">
+        <div class="empty-state" id="invEmpty">
+          <div class="empty-icon">◈</div>
+          <p>Aucun investissement</p>
+        </div>
       </div>
     </div>
 
     <div class="section" id="section-pnl">
       <div class="section-header">
         <div class="header-actions">
-          <div style="position:relative">
-            <button class="btn-sm filter-btn icon-only" id="filterBtn" onclick="toggleFilterPopup(event)" title="Filtrer par catégorie"><span id="filterLabel">⊟</span></button>
-            <div id="filterPopup" onclick="event.stopPropagation()" style="display:none;position:absolute;top:calc(100% + 6px);right:0;background:#0d0d0d;border:1px solid #2e2e2e;border-radius:2px;padding:6px;z-index:50;min-width:90px;gap:4px;flex-direction:column">
-              <label class="filter-opt" id="fopt-CEX"><input type="checkbox" id="fchk-CEX" onchange="toggleCat('CEX')"> CEX</label>
-              <label class="filter-opt" id="fopt-DEX"><input type="checkbox" id="fchk-DEX" onchange="toggleCat('DEX')"> DEX</label>
-              <label class="filter-opt" id="fopt-WALLET"><input type="checkbox" id="fchk-WALLET" onchange="toggleCat('WALLET')"> WALLET</label>
-            </div>
-          </div>
+          <button class="btn-sm filter-btn" id="filterCEX" onclick="toggleCat('CEX')">CEX</button>
+          <button class="btn-sm filter-btn" id="filterDEX" onclick="toggleCat('DEX')">DEX</button>
+          <button class="btn-sm filter-btn" id="filterWALLET" onclick="toggleCat('WALLET')">WAL</button>
           <button class="btn-sm sort-btn" id="sortPnlBtn" onclick="setSort('pnl')" title="Trier par PnL">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="12" y1="5" x2="12" y2="19"/>
@@ -444,6 +479,48 @@
   </div>
 </div>
 
+<!-- Add/Edit Investment Modal -->
+<div class="modal-overlay" id="invModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="invModalTitle">Ajouter un investissement</span>
+      <button class="modal-close" onclick="closeInvModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input class="form-input" id="invDate" type="date" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Montant €</label>
+          <input class="form-input" id="invEur" type="number" placeholder="0.00" step="any" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Montant $</label>
+          <input class="form-input" id="invUsd" type="number" placeholder="0.00" step="any" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Catégorie</label>
+        <div style="display:flex;gap:6px;margin-bottom:8px">
+          <button type="button" class="cat-btn" id="invCatCEX" onclick="selectInvCat('CEX')" data-cat="CEX">CEX</button>
+          <button type="button" class="cat-btn" id="invCatDEX" onclick="selectInvCat('DEX')" data-cat="DEX">DEX</button>
+          <button type="button" class="cat-btn" id="invCatWALLET" onclick="selectInvCat('WALLET')" data-cat="WALLET">WALLET</button>
+        </div>
+        <select class="form-input" id="invPlatform" style="cursor:pointer">
+          <option value="">-- Plateforme --</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn danger" id="invBtnDelete" style="display:none;margin-right:auto" onclick="askDeleteInv()">SUPPRIMER</button>
+        <button class="modal-btn cancel" onclick="closeInvModal()">ANNULER</button>
+        <button class="modal-btn confirm" id="invBtnConfirm" onclick="saveInv()">AJOUTER</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Restore Modal -->
 <div class="modal-overlay" id="restoreModal">
   <div class="modal">
@@ -521,12 +598,6 @@
   let currentSort = localStorage.getItem('portfolioSort') || null;
   let activeFilters = new Set(JSON.parse(localStorage.getItem('portfolioFilters') || 'null') || []);
 
-  function toggleFilterPopup(e) {
-    e.stopPropagation();
-    const p = document.getElementById('filterPopup');
-    p.style.display = p.style.display === 'flex' ? 'none' : 'flex';
-  }
-
   function toggleCat(cat) {
     if (activeFilters.has(cat)) activeFilters.delete(cat);
     else activeFilters.add(cat);
@@ -536,26 +607,10 @@
   }
 
   function updateFilterUI() {
-    const btn = document.getElementById('filterBtn');
-    const lbl = document.getElementById('filterLabel');
-    if (!btn || !lbl) return;
     ['CEX','DEX','WALLET'].forEach(c => {
-      const chk = document.getElementById('fchk-' + c);
-      if (chk) chk.checked = activeFilters.has(c);
+      const btn = document.getElementById('filter' + c);
+      if (btn) btn.classList.toggle('active', activeFilters.has(c));
     });
-    const n = activeFilters.size;
-    btn.className = 'btn-sm filter-btn icon-only';
-    if (n === 0) { lbl.textContent = '⊟'; }
-    else if (n === 1) {
-      const cat = [...activeFilters][0];
-      if (cat === 'CEX') { lbl.textContent = 'CEX'; btn.classList.add('f-cex'); }
-      else if (cat === 'DEX') { lbl.textContent = 'DEX'; btn.classList.add('f-dex'); }
-      else { lbl.textContent = 'WAL'; btn.classList.add('f-wallet'); }
-    } else {
-      lbl.textContent = n + '▼';
-      btn.style.color = 'var(--accent)';
-      btn.style.borderColor = 'rgba(200,255,0,0.3)';
-    }
   }
 
   function setSort(type) {
@@ -998,14 +1053,239 @@
     toastTimer = setTimeout(() => { t.className = 'toast'; }, 2500);
   }
 
-  document.addEventListener('click', () => {
-    const p = document.getElementById('filterPopup');
-    if (p) p.style.display = 'none';
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { closeCryptoModal(); closeRestoreModal(); closeConfirmModal(); }
+    if (e.key === 'Enter' && document.getElementById('cryptoModal').classList.contains('open')) saveCrypto();
   });
 
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { closeCryptoModal(); closeRestoreModal(); closeConfirmModal(); const p = document.getElementById('filterPopup'); if(p) p.style.display='none'; }
-    if (e.key === 'Enter' && document.getElementById('cryptoModal').classList.contains('open')) saveCrypto();
+
+
+  // ── Investment filters ──
+  let activeInvCats = new Set(); // empty = show all
+
+  function resetInvFilter() {
+    activeInvCats.clear();
+    updateInvFilterUI();
+    renderInvestments();
+  }
+
+  function toggleInvFilter(cat) {
+    if (activeInvCats.has(cat)) activeInvCats.delete(cat);
+    else activeInvCats.add(cat);
+    updateInvFilterUI();
+    renderInvestments();
+  }
+
+  function updateInvFilterUI() {
+    // TOUS button
+    const allBtn = document.getElementById('invFilterAll');
+    if (allBtn) {
+      const isAll = activeInvCats.size === 0;
+      allBtn.classList.toggle('sort-active', isAll);
+      allBtn.style.borderColor = isAll ? 'rgba(200,255,0,0.3)' : '';
+      allBtn.style.color = isAll ? 'var(--accent)' : '';
+    }
+    // Category buttons
+    const COLORS = {
+      CEX:    { border: 'rgba(255,255,255,0.4)', color: '#fff',    bg: 'rgba(255,255,255,0.06)' },
+      DEX:    { border: 'rgba(255,140,0,0.5)',   color: '#ff8c00', bg: 'rgba(255,140,0,0.08)'   },
+      WALLET: { border: 'rgba(77,166,255,0.5)',  color: '#4da6ff', bg: 'rgba(77,166,255,0.08)'  }
+    };
+    ['CEX','DEX','WALLET'].forEach(c => {
+      const btn = document.getElementById('invFilter' + c);
+      if (!btn) return;
+      const on = activeInvCats.has(c);
+      btn.style.borderColor  = on ? COLORS[c].border : 'var(--border)';
+      btn.style.color        = on ? COLORS[c].color  : 'var(--text-dim)';
+      btn.style.background   = on ? COLORS[c].bg     : 'transparent';
+    });
+  }
+
+  // ── Investments ──
+  if (!appData.investments) appData.investments = [];
+
+  const INV_PLATFORMS = {
+    CEX: ['Binance', 'Bybit', 'Coinbase', 'Kraken'],
+    DEX: ['Ethereum', 'Solana', 'Hyperliquid'],
+    WALLET: ['Tangem']
+  };
+
+  let editingInvIdx = -1;
+  let currentInvCat = 'CEX';
+
+  function selectInvCat(cat) {
+    currentInvCat = cat;
+    ['CEX','DEX','WALLET'].forEach(c => {
+      document.getElementById('invCat' + c).classList.toggle('active', c === cat);
+    });
+    const sel = document.getElementById('invPlatform');
+    sel.innerHTML = '<option value="">-- Plateforme --</option>';
+    INV_PLATFORMS[cat].forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p; opt.textContent = p;
+      sel.appendChild(opt);
+    });
+  }
+
+  function openInvModal() {
+    editingInvIdx = -1;
+    document.getElementById('invModalTitle').textContent = 'Ajouter un investissement';
+    document.getElementById('invBtnConfirm').textContent = 'AJOUTER';
+    document.getElementById('invBtnDelete').style.display = 'none';
+    document.getElementById('invDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('invEur').value = '';
+    document.getElementById('invUsd').value = '';
+    selectInvCat('CEX');
+    document.getElementById('invModal').classList.add('open');
+  }
+
+  function openEditInvModal(idx) {
+    editingInvIdx = idx;
+    const inv = appData.investments[idx];
+    document.getElementById('invModalTitle').textContent = 'Modifier';
+    document.getElementById('invBtnConfirm').textContent = 'ENREGISTRER';
+    document.getElementById('invBtnDelete').style.display = 'block';
+    document.getElementById('invDate').value = inv.date || '';
+    document.getElementById('invEur').value = inv.eur || '';
+    document.getElementById('invUsd').value = inv.usd || '';
+    selectInvCat(inv.category || 'CEX');
+    document.getElementById('invPlatform').value = inv.platform || '';
+    document.getElementById('invModal').classList.add('open');
+  }
+
+  function closeInvModal() {
+    document.getElementById('invModal').classList.remove('open');
+  }
+
+  function saveInv() {
+    const date = document.getElementById('invDate').value;
+    const eur = parseFloat(document.getElementById('invEur').value) || 0;
+    const usd = parseFloat(document.getElementById('invUsd').value) || 0;
+    const category = currentInvCat;
+    const platform = document.getElementById('invPlatform').value;
+
+    if (!date) { showToast('Date requise', 'error'); return; }
+    if (!eur && !usd) { showToast('Montant requis', 'error'); return; }
+    if (!platform) { showToast('Plateforme requise', 'error'); return; }
+
+    const entry = { date, eur, usd, category, platform };
+    if (editingInvIdx >= 0) {
+      appData.investments[editingInvIdx] = entry;
+    } else {
+      appData.investments.push(entry);
+    }
+    saveData();
+    closeInvModal();
+    renderInvestments();
+  }
+
+  function askDeleteInvDirect(idx) {
+    pendingDeleteIdx = idx;
+    window._deleteInvPending = true;
+    document.getElementById('confirmText').textContent = 'Supprimer cet investissement ? Cette action est irréversible.';
+    document.getElementById('confirmModal').classList.add('open');
+  }
+
+  function askDeleteInv() {
+    pendingDeleteIdx = editingInvIdx;
+    document.getElementById('confirmText').textContent = 'Supprimer cet investissement ? Cette action est irréversible.';
+    closeInvModal();
+    setTimeout(() => document.getElementById('confirmModal').classList.add('open'), 200);
+    // Override doConfirmedDelete for this context
+    window._deleteInvPending = true;
+  }
+
+  const _origDoConfirmedDelete = window.doConfirmedDelete;
+
+  function doConfirmedDelete() {
+    if (window._deleteInvPending) {
+      window._deleteInvPending = false;
+      appData.investments.splice(pendingDeleteIdx, 1);
+      saveData(); renderInvestments();
+      closeConfirmModal();
+      showToast('Investissement supprimé', 'success');
+    } else {
+      deleteCrypto(pendingDeleteIdx);
+      closeConfirmModal();
+    }
+  }
+
+  function renderInvestments() {
+    const list = document.getElementById('invList');
+    list.querySelectorAll('.inv-card').forEach(c => c.remove());
+    const empty = document.getElementById('invEmpty');
+
+    let totalEur = 0, totalUsd = 0;
+    appData.investments.forEach(inv => {
+      totalEur += inv.eur || 0;
+      totalUsd += inv.usd || 0;
+    });
+
+    const eurEl = document.getElementById('totalEur');
+    const usdEl = document.getElementById('totalUsd');
+    if (eurEl) eurEl.textContent = totalEur > 0 ? fmtCurrency(totalEur, '€') : '—';
+    if (usdEl) usdEl.textContent = totalUsd > 0 ? fmtCurrency(totalUsd, '$') : '—';
+
+    // Filter + sort by date desc
+    let filtered = appData.investments.map((inv, i) => ({ inv, i }));
+    if (activeInvCats.size > 0) {
+      filtered = filtered.filter(({ inv }) => activeInvCats.has(inv.category || 'CEX'));
+    }
+    const sorted = filtered.sort((a, b) => b.inv.date.localeCompare(a.inv.date));
+
+    updateInvFilterUI();
+    if (!appData.investments.length) { empty.style.display = 'flex'; return; }
+    empty.style.display = 'none';
+    if (!sorted.length) return; // filtered to nothing, cards cleared above
+
+    sorted.forEach(({ inv, i }) => {
+      const catClass = 'cat-' + (inv.category || 'CEX').toLowerCase();
+      const card = document.createElement('div');
+      card.className = 'inv-card';
+      card.innerHTML = `
+        <div class="inv-row1">
+          <span class="inv-date">${formatDate(inv.date)}</span>
+          <span class="inv-platform ${catClass}">${inv.platform}</span>
+          <div class="card-actions">
+            <button class="card-btn edit" onclick="openEditInvModal(${i})">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </button>
+            <button class="card-btn del" onclick="askDeleteInvDirect(${i})">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6l-1 14H6L5 6"/>
+                <path d="M10 11v6M14 11v6"/>
+                <path d="M9 6V4h6v2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="inv-row2">
+          ${inv.eur ? `<span class="inv-amount-eur">${fmtCurrency(inv.eur, '€')}</span>` : ''}
+          ${inv.usd ? `<span class="inv-amount-usd">${fmtCurrency(inv.usd, '$')}</span>` : ''}
+        </div>
+      `;
+      list.appendChild(card);
+    });
+  }
+
+  function fmtCurrency(n, symbol) {
+    return symbol === '€'
+      ? n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
+      : '$ ' + n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function formatDate(d) {
+    if (!d) return '—';
+    const [y, m, day] = d.split('-');
+    return `${day}/${m}/${y}`;
+  }
+
+  document.getElementById('invModal').addEventListener('click', function(e) {
+    if (e.target === this) closeInvModal();
   });
 
   // ── Init ──
