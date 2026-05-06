@@ -479,64 +479,78 @@
   };
   function cgId(s) { return CGIDS[s.toUpperCase()] || s.toLowerCase(); }
 
-  // ── Binance WebSocket ──
-  let ws = null;
-  let wsSymbols = [];
-  let wsConnected = false;
+  // ── WebSocket (Binance + Bybit fallback) ──
+  let wsBinance = null;
+  let wsBybit = null;
+  // Tokens not on Binance spot → use Bybit
+  const BYBIT_ONLY = new Set(['HYPE']);
 
-  function binanceStream(symbols) {
+  function startStreams(symbols) {
     if (!symbols.length) return;
-    wsSymbols = symbols.map(s => s.toLowerCase());
+    const binanceSyms = symbols.filter(s => !BYBIT_ONLY.has(s.toUpperCase()));
+    const bybitSyms   = symbols.filter(s =>  BYBIT_ONLY.has(s.toUpperCase()));
 
-    if (ws) { ws.close(); ws = null; }
+    // ── Binance ──
+    if (wsBinance) { wsBinance.close(); wsBinance = null; }
+    if (binanceSyms.length) {
+      const streams = binanceSyms.map(s => `${s.toLowerCase()}usdt@miniTicker`).join('/');
+      wsBinance = new WebSocket(`wss://stream.binance.com:9443/stream?streams=${streams}`);
+      wsBinance.onopen = () => document.getElementById('refreshBtn').classList.remove('spinning');
+      wsBinance.onmessage = (event) => {
+        try {
+          const d = JSON.parse(event.data).data;
+          if (!d || !d.s) return;
+          const sym = d.s.replace('USDT','').toUpperCase();
+          const price = parseFloat(d.c);
+          const open  = parseFloat(d.o);
+          liveData[sym] = { price, change24h: open > 0 ? ((price - open) / open) * 100 : 0 };
+          renderCryptos();
+        } catch {}
+      };
+      wsBinance.onerror = () => {
+        showToast('Erreur Binance', 'error');
+        document.getElementById('refreshBtn').classList.remove('spinning');
+      };
+    }
 
-    const streams = wsSymbols.map(s => `${s}usdt@miniTicker`).join('/');
-    ws = new WebSocket(`wss://stream.binance.com:9443/stream?streams=${streams}`);
+    // ── Bybit ──
+    if (wsBybit) { wsBybit.close(); wsBybit = null; }
+    if (bybitSyms.length) {
+      wsBybit = new WebSocket('wss://stream.bybit.com/v5/public/spot');
+      wsBybit.onopen = () => {
+        document.getElementById('refreshBtn').classList.remove('spinning');
+        const args = bybitSyms.map(s => `tickers.${s.toUpperCase()}USDT`);
+        wsBybit.send(JSON.stringify({ op: 'subscribe', args }));
+      };
+      wsBybit.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          if (!msg.data || !msg.data.symbol) return;
+          const sym = msg.data.symbol.replace('USDT','').toUpperCase();
+          const price = parseFloat(msg.data.lastPrice);
+          const change24h = parseFloat(msg.data.price24hPcnt) * 100;
+          liveData[sym] = { price, change24h };
+          renderCryptos();
+        } catch {}
+      };
+      wsBybit.onerror = () => {
+        showToast('Erreur Bybit', 'error');
+        document.getElementById('refreshBtn').classList.remove('spinning');
+      };
+    }
 
-    ws.onopen = () => {
-      wsConnected = true;
-      document.getElementById('refreshBtn').classList.remove('spinning');
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const msg = JSON.parse(event.data);
-        const d = msg.data;
-        if (!d || !d.s) return;
-        const sym = d.s.replace('USDT','').toUpperCase();
-        const price = parseFloat(d.c);
-        const open = parseFloat(d.o);
-        const change24h = open > 0 ? ((price - open) / open) * 100 : 0;
-        liveData[sym] = { price, change24h };
-        renderCryptos();
-      } catch {}
-    };
-
-    ws.onerror = () => {
-      wsConnected = false;
-      showToast('Erreur de connexion', 'error');
-      document.getElementById('refreshBtn').classList.remove('spinning');
-    };
-
-    ws.onclose = () => {
-      wsConnected = false;
-    };
+    if (!binanceSyms.length && !bybitSyms.length) return;
+    setTimeout(() => document.getElementById('refreshBtn').classList.remove('spinning'), 5000);
   }
 
   function refreshPrices() {
     if (!appData.cryptos.length) return;
-    const btn = document.getElementById('refreshBtn');
-    btn.classList.add('spinning');
-    const symbols = appData.cryptos.map(c => c.symbol);
-    binanceStream(symbols);
-    // Spinner stops on ws.onopen or ws.onerror
-    setTimeout(() => btn.classList.remove('spinning'), 5000);
+    document.getElementById('refreshBtn').classList.add('spinning');
+    startStreams(appData.cryptos.map(c => c.symbol));
   }
 
   function restartStream() {
-    if (appData.cryptos.length) {
-      binanceStream(appData.cryptos.map(c => c.symbol));
-    }
+    if (appData.cryptos.length) startStreams(appData.cryptos.map(c => c.symbol));
   }
 
   // ── Render ──
