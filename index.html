@@ -319,7 +319,7 @@
       <span>◈</span> Investissements
     </button>
     <button class="tab pnl" onclick="switchTab('pnl')">
-      <span>▲</span> Pertes &amp; Profits
+      <span>▲</span> PnL (<span id="cryptoCount">0</span>)
     </button>
   </header>
 
@@ -701,8 +701,8 @@
     if (currentSort === 'pnl') {
       sorted.sort((a, b) => {
         const la = liveData[a.symbol] || {}, lb = liveData[b.symbol] || {};
-        const pa = la.price != null ? (la.price - a.buyPrice) * a.qty : -Infinity;
-        const pb = lb.price != null ? (lb.price - b.buyPrice) * b.qty : -Infinity;
+        const pa = la.price != null ? ((la.price - a.buyPrice) / a.buyPrice) * 100 : -Infinity;
+        const pb = lb.price != null ? ((lb.price - b.buyPrice) / b.buyPrice) * 100 : -Infinity;
         return pb - pa;
       });
     } else if (currentSort === '24h') {
@@ -800,6 +800,8 @@
         has24h = true;
       }
     });
+    const countEl = document.getElementById('cryptoCount');
+    if (countEl) countEl.textContent = appData.cryptos.length;
     const bar = document.getElementById('summaryBar');
     bar.style.display = appData.cryptos.length ? 'grid' : 'none';
     const sumPnlEl = document.getElementById('sumPnl');
