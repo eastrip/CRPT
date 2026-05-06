@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --border: #1e1e1e;
+      --border-bright: #2e2e2e;
+      --text: #e8e8e8;
+      --text-dim: #555;
+      --text-muted: #333;
+      --accent: #c8ff00;
+      --accent-dim: rgba(200, 255, 0, 0.08);
+      --danger: #ff4444;
+      --danger-dim: rgba(255, 68, 68, 0.08);
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      overflow: hidden;
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      padding: 28px 36px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    header .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+    }
+    header h1 {
+      font-size: 13px;
+      font-family: 'DM Mono', monospace;
+      font-weight: 400;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    /* ── Main ── */
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      padding: 40px;
+    }
+
+    .nav-btn {
+      position: relative;
+      width: 240px;
+      height: 260px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-end;
+      padding: 28px;
+      transition: border-color 0.2s, background 0.2s;
+      overflow: hidden;
+      text-decoration: none;
+    }
+    .nav-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .nav-btn:hover {
+      border-color: var(--border-bright);
+    }
+    .nav-btn:hover::before { opacity: 1; }
+    .nav-btn:active { transform: translateY(1px); }
+
+    .nav-btn.investments::before { background: var(--accent-dim); }
+    .nav-btn.investments:hover { border-color: rgba(200,255,0,0.3); }
+    .nav-btn.investments .btn-icon { color: var(--accent); }
+    .nav-btn.investments .btn-line { background: var(--accent); }
+
+    .nav-btn.pnl::before { background: rgba(255,255,255,0.02); }
+    .nav-btn.pnl:hover { border-color: var(--border-bright); }
+    .nav-btn.pnl .btn-icon { color: #aaa; }
+    .nav-btn.pnl .btn-line { background: #aaa; }
+
+    .btn-icon {
+      font-size: 26px;
+      margin-bottom: auto;
+      padding-top: 4px;
+      line-height: 1;
+    }
+    .btn-label {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--text);
+    }
+    .btn-sub {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-top: 5px;
+    }
+    .btn-line {
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px;
+      height: 0;
+      transition: height 0.25s ease;
+    }
+    .nav-btn:hover .btn-line { height: 100%; }
+
+    /* ── Footer ── */
+    footer {
+      padding: 18px 36px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .footer-left {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.15em;
+    }
+    .footer-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .footer-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--text-dim);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .footer-btn:hover {
+      border-color: var(--border-bright);
+      color: var(--text);
+    }
+    .footer-btn.save:hover { border-color: rgba(200,255,0,0.4); color: var(--accent); }
+    .footer-btn.restore:hover { border-color: rgba(255,255,255,0.15); color: #ccc; }
+    .footer-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border-bright);
+      border-radius: 2px;
+      width: 420px;
+      max-width: 90vw;
+      transform: translateY(12px);
+      transition: transform 0.2s;
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+
+    .modal-header {
+      padding: 22px 26px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-title {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    .modal-close {
+      width: 28px; height: 28px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--text-dim);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all 0.15s;
+    }
+    .modal-close:hover { border-color: var(--border-bright); color: var(--text); }
+
+    .modal-body { padding: 26px; }
+    .modal-desc {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+      line-height: 1.7;
+      margin-bottom: 22px;
+    }
+    .modal-highlight {
+      background: var(--accent-dim);
+      border: 1px solid rgba(200,255,0,0.15);
+      border-radius: 2px;
+      padding: 12px 16px;
+      margin-bottom: 22px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    .modal-btn {
+      padding: 10px 22px;
+      border-radius: 2px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      transition: all 0.15s;
+    }
+    .modal-btn.cancel {
+      background: transparent;
+      color: var(--text-dim);
+    }
+    .modal-btn.cancel:hover { border-color: var(--border-bright); color: var(--text); }
+    .modal-btn.confirm {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+      font-weight: 500;
+    }
+    .modal-btn.confirm:hover { background: #d4ff1a; }
+
+    /* ── Restore Modal ── */
+    .file-drop {
+      border: 1px dashed var(--border-bright);
+      border-radius: 2px;
+      padding: 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-bottom: 22px;
+    }
+    .file-drop:hover, .file-drop.drag { border-color: rgba(200,255,0,0.4); }
+    .file-drop-icon { font-size: 24px; margin-bottom: 10px; }
+    .file-drop-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.1em;
+    }
+    .file-drop-label span { color: var(--accent); }
+    #fileInput { display: none; }
+    .file-selected {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      margin-top: 8px;
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: var(--surface);
+      border: 1px solid var(--border-bright);
+      border-radius: 2px;
+      padding: 12px 20px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      color: var(--text);
+      opacity: 0;
+      transition: all 0.2s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .toast.success { border-color: rgba(200,255,0,0.3); color: var(--accent); }
+    .toast.error { border-color: rgba(255,68,68,0.3); color: var(--danger); }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="dot"></div>
+    <h1>Portfolio</h1>
+  </header>
+
+  <main>
+    <button class="nav-btn investments" onclick="navigate('investments')">
+      <div class="btn-line"></div>
+      <div class="btn-icon">◈</div>
+      <div class="btn-label">Investissements</div>
+      <div class="btn-sub">Actifs · Portefeuille</div>
+    </button>
+
+    <button class="nav-btn pnl" onclick="navigate('pnl')">
+      <div class="btn-line"></div>
+      <div class="btn-icon">▲</div>
+      <div class="btn-label">PnL</div>
+      <div class="btn-sub">Gains · Pertes</div>
+    </button>
+  </main>
+
+  <footer>
+    <div class="footer-left">v1.0.0</div>
+    <div class="footer-actions">
+      <button class="footer-btn save" onclick="doSave()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/>
+          <polyline points="7 3 7 8 15 8"/>
+        </svg>
+        COPIER SAUVEGARDE
+      </button>
+      <button class="footer-btn restore" onclick="openRestoreModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <polyline points="1 4 1 10 7 10"/>
+          <path d="M3.51 15a9 9 0 1 0 .49-4.95"/>
+        </svg>
+        RESTAURER
+      </button>
+    </div>
+  </footer>
+</div>
+
+<!-- Restore Modal -->
+<div class="modal-overlay" id="restoreModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Restaurer une sauvegarde</span>
+      <button class="modal-close" onclick="closeRestoreModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-desc">Sélectionnez un fichier JSON de sauvegarde pour restaurer vos données. Les données actuelles seront remplacées.</p>
+      <div class="file-drop" id="fileDrop" onclick="document.getElementById('fileInput').click()">
+        <div class="file-drop-icon">⬆</div>
+        <div class="file-drop-label">Déposer un fichier ou <span>parcourir</span></div>
+        <div class="file-selected" id="fileSelectedLabel"></div>
+      </div>
+      <input type="file" id="fileInput" accept=".json" onchange="onFileSelect(event)">
+      <div class="modal-actions">
+        <button class="modal-btn cancel" onclick="closeRestoreModal()">ANNULER</button>
+        <button class="modal-btn confirm" onclick="doRestore()">RESTAURER</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── State ──
+  let appData = JSON.parse(localStorage.getItem('portfolioData') || 'null') || {
+    investments: [],
+    pnl: [],
+    createdAt: new Date().toISOString()
+  };
+  let selectedFile = null;
+
+  // ── Navigation ──
+  function navigate(section) {
+    showToast(`Section "${section}" — à venir`, 'success');
+  }
+
+  // ── Save ──
+  async function doSave() {
+    const now = new Date();
+    const d = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    const json = JSON.stringify({ ...appData, exportedAt: now.toISOString() }, null, 2);
+    const filename = `sauvegarde-portfolio-${d}.json`;
+    const file = new File([json], filename, { type: 'application/json' });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: filename });
+      } catch (e) {
+        if (e.name !== 'AbortError') showToast('Erreur de partage', 'error');
+      }
+    } else {
+      // Fallback navigateurs desktop
+      const url = URL.createObjectURL(file);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    }
+  }
+
+  // ── Restore ──
+  function openRestoreModal() {
+    selectedFile = null;
+    document.getElementById('fileSelectedLabel').textContent = '';
+    document.getElementById('fileInput').value = '';
+    document.getElementById('restoreModal').classList.add('open');
+  }
+  function closeRestoreModal() {
+    document.getElementById('restoreModal').classList.remove('open');
+  }
+  function onFileSelect(e) {
+    selectedFile = e.target.files[0];
+    if (selectedFile) {
+      document.getElementById('fileSelectedLabel').textContent = selectedFile.name;
+    }
+  }
+  function doRestore() {
+    if (!selectedFile) { showToast('Aucun fichier sélectionné', 'error'); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        appData = data;
+        localStorage.setItem('portfolioData', JSON.stringify(appData));
+        closeRestoreModal();
+        showToast('Données restaurées avec succès', 'success');
+      } catch {
+        showToast('Fichier JSON invalide', 'error');
+      }
+    };
+    reader.readAsText(selectedFile);
+  }
+
+  // ── Drag & Drop ──
+  const drop = document.getElementById('fileDrop');
+  drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('drag'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('drag'));
+  drop.addEventListener('drop', (e) => {
+    e.preventDefault();
+    drop.classList.remove('drag');
+    const f = e.dataTransfer.files[0];
+    if (f && f.name.endsWith('.json')) {
+      selectedFile = f;
+      document.getElementById('fileSelectedLabel').textContent = f.name;
+    } else {
+      showToast('Fichier JSON requis', 'error');
+    }
+  });
+
+  // ── Close on overlay click ──
+  document.getElementById('restoreModal').addEventListener('click', function(e) {
+    if (e.target === this) closeRestoreModal();
+  });
+
+  // ── Toast ──
+  let toastTimer;
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.className = 'toast'; }, 2500);
+  }
+
+  // ── ESC key ──
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { closeRestoreModal(); }
+  });
+</script>
+</body>
+</html>
