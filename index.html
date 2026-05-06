@@ -433,7 +433,7 @@
 
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
-        await navigator.share({ files: [file], title: filename });
+        await navigator.share({ files: [file] });
       } catch (e) {
         if (e.name !== 'AbortError') showToast('Erreur de partage', 'error');
       }
