@@ -547,6 +547,24 @@
     if (!appData.cryptos.length) { empty.style.display = 'flex'; return; }
     empty.style.display = 'none';
 
+    // Sort
+    let sorted = [...appData.cryptos];
+    if (currentSort === 'pnl') {
+      sorted.sort((a, b) => {
+        const la = liveData[a.symbol] || {}, lb = liveData[b.symbol] || {};
+        const pa = la.price != null ? (la.price - a.buyPrice) * a.qty : -Infinity;
+        const pb = lb.price != null ? (lb.price - b.buyPrice) * b.qty : -Infinity;
+        return pb - pa;
+      });
+    } else if (currentSort === '24h') {
+      sorted.sort((a, b) => {
+        const la = liveData[a.symbol] || {}, lb = liveData[b.symbol] || {};
+        const ca = la.change24h != null ? la.change24h : -Infinity;
+        const cb = lb.change24h != null ? lb.change24h : -Infinity;
+        return cb - ca;
+      });
+    }
+
     sorted.forEach((crypto, idx) => {
       const realIdx = appData.cryptos.indexOf(crypto);
       const live = liveData[crypto.symbol] || {};
@@ -812,12 +830,16 @@
   });
 
   // ── Init ──
-  const savedTab = localStorage.getItem('portfolioTab') || 'investments';
-  if (savedTab !== 'investments') switchTab(savedTab);
-  else { updateSortUI(); renderCryptos(); }
-  updateSortUI();
-  renderCryptos();
-  if (savedTab === 'pnl' && appData.cryptos.length) refreshPrices();
+  try {
+    const savedTab = localStorage.getItem('portfolioTab') || 'investments';
+    updateSortUI();
+    renderCryptos();
+    if (savedTab === 'pnl') {
+      switchTab('pnl');
+    }
+  } catch(e) {
+    console.error('Init error:', e);
+  }
 </script>
 </body>
 </html>
