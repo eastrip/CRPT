@@ -114,6 +114,18 @@
     .card-row1 {
       display: flex; align-items: center; gap: 0;
     }
+    .card-icon {
+      width: 20px; height: 20px; border-radius: 50%;
+      object-fit: cover; flex-shrink: 0; margin-right: 6px;
+      background: var(--border); /* placeholder color while loading */
+    }
+    .card-icon-placeholder {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--border); flex-shrink: 0; margin-right: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 8px; font-weight: 700; color: var(--text-dim);
+      font-family: 'DM Mono', monospace;
+    }
     .card-symbol {
       font-size: 13px; font-weight: 700; letter-spacing: 0.02em;
       white-space: nowrap; flex: 0 0 auto; margin-right: 6px;
@@ -443,8 +455,8 @@
     document.querySelector(`.tab.${tab}`).classList.add('active');
     document.getElementById(`section-${tab}`).classList.add('active');
     localStorage.setItem('portfolioTab', tab);
-    if (tab === 'pnl') refreshPrices();
-    else if (ws) { ws.close(); ws = null; }
+    if (tab === 'pnl') { prefetchIcons(appData.cryptos.map(c => c.symbol)); refreshPrices(); }
+    else if (wsBinance) { wsBinance.close(); wsBinance = null; }
   }
 
   let currentSort = localStorage.getItem('portfolioSort') || null;
@@ -478,6 +490,30 @@
     TON:'the-open-network'
   };
   function cgId(s) { return CGIDS[s.toUpperCase()] || s.toLowerCase(); }
+
+  // ── Crypto icons ──
+  const iconCache = JSON.parse(localStorage.getItem('iconCache') || '{}');
+
+  async function fetchIcon(symbol) {
+    if (iconCache[symbol]) return iconCache[symbol];
+    const id = cgId(symbol);
+    try {
+      const res = await fetch(`https://api.coingecko.com/api/v3/coins/${id}?localization=false&tickers=false&market_data=false&community_data=false&developer_data=false`);
+      if (!res.ok) return null;
+      const data = await res.json();
+      const url = data.image && data.image.small;
+      if (url) {
+        iconCache[symbol] = url;
+        try { localStorage.setItem('iconCache', JSON.stringify(iconCache)); } catch {}
+      }
+      return url || null;
+    } catch { return null; }
+  }
+
+  async function prefetchIcons(symbols) {
+    await Promise.all(symbols.map(s => fetchIcon(s)));
+    renderCryptos();
+  }
 
   // ── WebSocket (Binance + Bybit fallback) ──
   let wsBinance = null;
@@ -595,8 +631,13 @@
       const chgClass = change == null ? '' : change >= 0 ? 'up' : 'down';
       const pnlStr = pnl == null ? '—' : (pnl >= 0 ? '+' : '-') + '$' + fmt(Math.abs(pnl)) + (pnlPct != null ? ' (' + (pnlPct >= 0 ? '+' : '') + pnlPct.toFixed(1) + '%)' : '');
       const chgStr = change == null ? '—' : (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
+      const iconUrl = iconCache[crypto.symbol] || null;
+      const iconHtml = iconUrl
+        ? `<img class="card-icon" src="${iconUrl}" alt="${crypto.symbol}" onerror="this.style.display='none'">`
+        : `<span class="card-icon-placeholder">${crypto.symbol.slice(0,2)}</span>`;
       card.innerHTML = `
         <div class="card-row1">
+          ${iconHtml}
           <span class="card-symbol">${crypto.symbol}</span>
           <span class="card-pair">/USDC</span>
           <span class="card-buy">$${fmt(crypto.buyPrice)}</span>
@@ -726,7 +767,8 @@
     } else {
       appData.cryptos.push({ symbol, buyPrice, qty });
       saveData(); closeCryptoModal(); renderCryptos();
-      // Restart stream to include new symbol
+      // Restart stream + fetch icon for new symbol
+      prefetchIcons([symbol]);
       restartStream();
     }
   }
@@ -850,6 +892,8 @@
     renderCryptos();
     if (savedTab === 'pnl') {
       switchTab('pnl');
+    } else {
+      prefetchIcons(appData.cryptos.map(c => c.symbol));
     }
   } catch(e) {
     console.error('Init error:', e);
