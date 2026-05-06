@@ -480,16 +480,46 @@
 
   async function fetchPrices(symbols) {
     if (!symbols.length) return {};
-    const ids = symbols.map(cgId).join(',');
-    const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`);
-    if (!res.ok) throw new Error('API error');
-    const data = await res.json();
-    const result = {};
-    symbols.forEach(s => {
-      const id = cgId(s);
-      if (data[id]) result[s.toUpperCase()] = { price: data[id].usd, change24h: data[id].usd_24h_change };
-    });
-    return result;
+
+    // Try CoinGecko first
+    try {
+      const ids = symbols.map(cgId).join(',');
+      const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`);
+      if (res.ok) {
+        const data = await res.json();
+        const result = {};
+        symbols.forEach(s => {
+          const id = cgId(s);
+          if (data[id]) result[s.toUpperCase()] = { price: data[id].usd, change24h: data[id].usd_24h_change };
+        });
+        if (Object.keys(result).length) return result;
+      }
+    } catch {}
+
+    // Fallback: Binance API (no CORS issues)
+    try {
+      const result = {};
+      await Promise.all(symbols.map(async s => {
+        const sym = s.toUpperCase();
+        try {
+          const [tickerRes, statsRes] = await Promise.all([
+            fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${sym}USDT`),
+            fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${sym}USDT`)
+          ]);
+          if (tickerRes.ok && statsRes.ok) {
+            const ticker = await tickerRes.json();
+            const stats = await statsRes.json();
+            result[sym] = {
+              price: parseFloat(ticker.price),
+              change24h: parseFloat(stats.priceChangePercent)
+            };
+          }
+        } catch {}
+      }));
+      return result;
+    } catch {}
+
+    throw new Error('Toutes les APIs sont indisponibles');
   }
 
   async function refreshPrices() {
