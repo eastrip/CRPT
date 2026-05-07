@@ -129,6 +129,7 @@
       border-radius: 2px; padding: 6px 10px;
     }
     .summary-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1px; }
+    .summary-sub { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text-muted); margin-top: 2px; }
     .summary-value { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; }
     .summary-value.up { color: var(--green); }
     .summary-value.down { color: var(--red); }
@@ -347,10 +348,12 @@
           <div class="inv-summary-cell" style="border-color:rgba(77,166,255,0.3)">
             <div class="summary-label">INVESTIS €</div>
             <div class="summary-value" id="totalEur" style="color:#4da6ff">—</div>
+            <div class="summary-sub" id="subEur"></div>
           </div>
           <div class="inv-summary-cell" style="border-color:rgba(0,230,118,0.3)">
             <div class="summary-label">INVESTIS $</div>
             <div class="summary-value" id="totalUsd" style="color:#00e676">—</div>
+            <div class="summary-sub" id="subUsd"></div>
           </div>
         </div>
         <button class="btn-sm accent icon-only" onclick="openInvModal()" style="flex-shrink:0" title="Ajouter">
@@ -638,7 +641,9 @@
     HBAR:'hedera-hashgraph',ICP:'internet-computer',FIL:'filecoin',GRT:'the-graph',
     STX:'blockstack',RUNE:'thorchain',VET:'vechain',XLM:'stellar',TRX:'tron',
     XMR:'monero',DASH:'dash',IOTA:'iota',ZEC:'zcash',
-    TON:'the-open-network'
+    TON:'the-open-network',
+    ENA:'ethena',
+    HYPE:'hyperliquid'
   };
   function cgId(s) { return CGIDS[s.toUpperCase()] || s.toLowerCase(); }
 
@@ -1212,6 +1217,7 @@
     const empty = document.getElementById('invEmpty');
 
     let totalEur = 0, totalUsd = 0;
+    let filteredEur = 0, filteredUsd = 0;
     appData.investments.forEach(inv => {
       totalEur += inv.eur || 0;
       totalUsd += inv.usd || 0;
@@ -1219,6 +1225,8 @@
 
     const eurEl = document.getElementById('totalEur');
     const usdEl = document.getElementById('totalUsd');
+    const subEurEl = document.getElementById('subEur');
+    const subUsdEl = document.getElementById('subUsd');
     if (eurEl) eurEl.textContent = totalEur > 0 ? fmtCurrency(totalEur, '€') : '—';
     if (usdEl) usdEl.textContent = totalUsd > 0 ? fmtCurrency(totalUsd, '$') : '—';
 
@@ -1229,8 +1237,23 @@
     }
     const sorted = filtered.sort((a, b) => b.inv.date.localeCompare(a.inv.date));
 
-    if (!appData.investments.length) { empty.style.display = 'flex'; updateInvFilterUI(); return; }
+    if (!appData.investments.length) { empty.style.display = 'flex'; updateInvFilterUI(); if(subEurEl) subEurEl.textContent = ''; if(subUsdEl) subUsdEl.textContent = ''; return; }
     empty.style.display = 'none';
+    // Compute filtered totals
+    sorted.forEach(({ inv }) => {
+      filteredEur += inv.eur || 0;
+      filteredUsd += inv.usd || 0;
+    });
+    if (subEurEl) {
+      if (activeInvCats.size > 0 && filteredEur !== totalEur) {
+        subEurEl.textContent = 'dont ' + fmtCurrency(filteredEur, '€');
+      } else { subEurEl.textContent = ''; }
+    }
+    if (subUsdEl) {
+      if (activeInvCats.size > 0 && filteredUsd !== totalUsd) {
+        subUsdEl.textContent = 'dont ' + fmtCurrency(filteredUsd, '$');
+      } else { subUsdEl.textContent = ''; }
+    }
     updateInvFilterUI();
     if (!sorted.length) return;
 
