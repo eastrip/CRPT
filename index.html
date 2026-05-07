@@ -364,12 +364,14 @@
         </button>
       </div>
       <!-- Filter row -->
-      <div id="invFilterRow" style="display:flex;gap:6px;padding:6px 0 8px;border-bottom:1px solid var(--border);margin-bottom:8px">
+      <div id="invFilterRow" style="display:flex;gap:6px;padding:6px 0 6px;border-bottom:none">
         <button class="btn-sm sort-active" id="invFilterAll" onclick="resetInvFilter()">TOUS</button>
         <button class="btn-sm filter-btn" id="invFilterCEX" onclick="toggleInvFilter('CEX')">CEX</button>
         <button class="btn-sm filter-btn" id="invFilterDEX" onclick="toggleInvFilter('DEX')">DEX</button>
         <button class="btn-sm filter-btn" id="invFilterWALLET" onclick="toggleInvFilter('WALLET')">WAL</button>
       </div>
+      <div id="invSubFilterRow" style="display:none;gap:6px;flex-wrap:wrap;padding:4px 0 8px;border-bottom:1px solid var(--border);margin-bottom:8px"></div>
+      <div id="invFilterSep" style="height:1px;background:var(--border);margin-bottom:8px"></div>
       <div class="inv-list" id="invList">
         <div class="empty-state" id="invEmpty">
           <div class="empty-icon">◈</div>
@@ -1067,24 +1069,47 @@
 
   // ── Investment filters ──
   let activeInvCats = new Set(JSON.parse(localStorage.getItem('invCatsFilter') || '[]'));
+  let activeInvSubs = new Set(JSON.parse(localStorage.getItem('invSubsFilter') || '[]'));
 
   function resetInvFilter() {
     activeInvCats.clear();
-    try { localStorage.removeItem('invCatsFilter'); } catch {}
+    activeInvSubs.clear();
+    try { localStorage.removeItem('invCatsFilter'); localStorage.removeItem('invSubsFilter'); } catch {}
     updateInvFilterUI();
     renderInvestments();
   }
 
   function toggleInvFilter(cat) {
-    if (activeInvCats.has(cat)) activeInvCats.delete(cat);
-    else activeInvCats.add(cat);
-    try { localStorage.setItem('invCatsFilter', JSON.stringify([...activeInvCats])); } catch {}
+    if (activeInvCats.has(cat)) {
+      activeInvCats.delete(cat);
+      // Remove subs of this cat
+      INV_PLATFORMS[cat].forEach(p => activeInvSubs.delete(p));
+    } else {
+      activeInvCats.add(cat);
+    }
+    try {
+      localStorage.setItem('invCatsFilter', JSON.stringify([...activeInvCats]));
+      localStorage.setItem('invSubsFilter', JSON.stringify([...activeInvSubs]));
+    } catch {}
     updateInvFilterUI();
     renderInvestments();
   }
 
+  function toggleInvSub(platform) {
+    if (activeInvSubs.has(platform)) activeInvSubs.delete(platform);
+    else activeInvSubs.add(platform);
+    try { localStorage.setItem('invSubsFilter', JSON.stringify([...activeInvSubs])); } catch {}
+    renderInvestments();
+  }
+
   function updateInvFilterUI() {
-    // TOUS button
+    const COLORS = {
+      CEX:    { border: 'rgba(255,255,255,0.4)', color: '#fff',    bg: 'rgba(255,255,255,0.06)' },
+      DEX:    { border: 'rgba(255,140,0,0.5)',   color: '#ff8c00', bg: 'rgba(255,140,0,0.08)'   },
+      WALLET: { border: 'rgba(77,166,255,0.5)',  color: '#4da6ff', bg: 'rgba(77,166,255,0.08)'  }
+    };
+
+    // TOUS
     const allBtn = document.getElementById('invFilterAll');
     if (allBtn) {
       const isAll = activeInvCats.size === 0;
@@ -1092,20 +1117,48 @@
       allBtn.style.borderColor = isAll ? 'rgba(200,255,0,0.3)' : '';
       allBtn.style.color = isAll ? 'var(--accent)' : '';
     }
+
     // Category buttons
-    const COLORS = {
-      CEX:    { border: 'rgba(255,255,255,0.4)', color: '#fff',    bg: 'rgba(255,255,255,0.06)' },
-      DEX:    { border: 'rgba(255,140,0,0.5)',   color: '#ff8c00', bg: 'rgba(255,140,0,0.08)'   },
-      WALLET: { border: 'rgba(77,166,255,0.5)',  color: '#4da6ff', bg: 'rgba(77,166,255,0.08)'  }
-    };
     ['CEX','DEX','WALLET'].forEach(c => {
       const btn = document.getElementById('invFilter' + c);
       if (!btn) return;
       const on = activeInvCats.has(c);
-      btn.style.borderColor  = on ? COLORS[c].border : 'var(--border)';
-      btn.style.color        = on ? COLORS[c].color  : 'var(--text-dim)';
-      btn.style.background   = on ? COLORS[c].bg     : 'transparent';
+      btn.style.borderColor = on ? COLORS[c].border : 'var(--border)';
+      btn.style.color       = on ? COLORS[c].color  : 'var(--text-dim)';
+      btn.style.background  = on ? COLORS[c].bg     : 'transparent';
     });
+
+    // Sub-filter row
+    const subRow = document.getElementById('invSubFilterRow');
+    const sep = document.getElementById('invFilterSep');
+    if (!subRow) return;
+    subRow.innerHTML = '';
+
+    if (activeInvCats.size > 0) {
+      const activeCats = [...activeInvCats];
+      activeCats.forEach(cat => {
+        const platforms = INV_PLATFORMS[cat] || [];
+        const c = COLORS[cat];
+        platforms.forEach(p => {
+          const btn = document.createElement('button');
+          const on = activeInvSubs.has(p);
+          btn.className = 'btn-sm';
+          btn.style.fontSize = '9px';
+          btn.style.borderColor = on ? c.border : 'var(--border)';
+          btn.style.borderStyle = 'dotted';
+          btn.style.color       = on ? c.color  : 'var(--text-dim)';
+          btn.style.background  = on ? c.bg     : 'transparent';
+          btn.textContent = p.toUpperCase();
+          btn.onclick = () => toggleInvSub(p);
+          subRow.appendChild(btn);
+        });
+      });
+      subRow.style.display = 'flex';
+      if (sep) sep.style.display = 'block';
+    } else {
+      subRow.style.display = 'none';
+      if (sep) sep.style.display = 'block';
+    }
   }
 
   // ── Investments ──
@@ -1237,6 +1290,9 @@
     let filtered = appData.investments.map((inv, i) => ({ inv, i }));
     if (activeInvCats.size > 0) {
       filtered = filtered.filter(({ inv }) => activeInvCats.has(inv.category || 'CEX'));
+    }
+    if (activeInvSubs.size > 0) {
+      filtered = filtered.filter(({ inv }) => activeInvSubs.has(inv.platform));
     }
     const sorted = filtered.sort((a, b) => b.inv.date.localeCompare(a.inv.date));
 
