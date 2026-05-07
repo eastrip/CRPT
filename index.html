@@ -129,7 +129,8 @@
       border-radius: 2px; padding: 6px 10px;
     }
     .summary-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1px; }
-    .summary-sub { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text-muted); margin-top: 2px; }
+    .summary-sub-eur { font-family: 'DM Mono', monospace; font-size: 9px; color: #4da6ff; margin-top: 2px; opacity: 0.75; }
+    .summary-sub-usd { font-family: 'DM Mono', monospace; font-size: 9px; color: #00e676; margin-top: 2px; opacity: 0.75; }
     .summary-value { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; }
     .summary-value.up { color: var(--green); }
     .summary-value.down { color: var(--red); }
@@ -348,12 +349,12 @@
           <div class="inv-summary-cell" style="border-color:rgba(77,166,255,0.3)">
             <div class="summary-label">INVESTIS €</div>
             <div class="summary-value" id="totalEur" style="color:#4da6ff">—</div>
-            <div class="summary-sub" id="subEur"></div>
+            <div class="summary-sub-eur" id="subEur"></div>
           </div>
           <div class="inv-summary-cell" style="border-color:rgba(0,230,118,0.3)">
             <div class="summary-label">INVESTIS $</div>
             <div class="summary-value" id="totalUsd" style="color:#00e676">—</div>
-            <div class="summary-sub" id="subUsd"></div>
+            <div class="summary-sub-usd" id="subUsd"></div>
           </div>
         </div>
         <button class="btn-sm accent icon-only" onclick="openInvModal()" style="flex-shrink:0" title="Ajouter">
@@ -1065,10 +1066,11 @@
   });
 
   // ── Investment filters ──
-  let activeInvCats = new Set(); // empty = show all
+  let activeInvCats = new Set(JSON.parse(localStorage.getItem('invCatsFilter') || '[]'));
 
   function resetInvFilter() {
     activeInvCats.clear();
+    try { localStorage.removeItem('invCatsFilter'); } catch {}
     updateInvFilterUI();
     renderInvestments();
   }
@@ -1076,6 +1078,7 @@
   function toggleInvFilter(cat) {
     if (activeInvCats.has(cat)) activeInvCats.delete(cat);
     else activeInvCats.add(cat);
+    try { localStorage.setItem('invCatsFilter', JSON.stringify([...activeInvCats])); } catch {}
     updateInvFilterUI();
     renderInvestments();
   }
