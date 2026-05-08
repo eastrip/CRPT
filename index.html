@@ -60,10 +60,6 @@
       background: #000; padding: 6px 0;
       border-bottom: 1px solid var(--border); margin-bottom: 6px;
     }
-    .section-label {
-      font-family: 'DM Mono', monospace; font-size: 10px;
-      letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim);
-    }
     .header-actions { display: flex; gap: 8px; }
     .btn-sm {
       display: flex; align-items: center; gap: 5px; padding: 5px 8px;
@@ -193,7 +189,7 @@
       flex-shrink: 0;
     }
     .stat-val {
-      font-family: 'DM Mono', monospace; font-size: 11px;
+      font-family: 'DM Mono', monospace; font-size: 10px;
       color: var(--text); white-space: nowrap;
     }
     .stat-val.up { color: var(--green); }
@@ -344,34 +340,36 @@
 
   <main>
     <div class="section active" id="section-investments">
-      <div class="section-header" style="position:sticky;top:0;background:#000;padding:10px 0 6px;border-bottom:1px solid var(--border);margin-bottom:8px;z-index:10">
-        <div style="display:flex;gap:8px;flex:1">
-          <div class="inv-summary-cell" style="border-color:rgba(77,166,255,0.3)">
+      <div style="position:sticky;top:0;background:#000;z-index:10;padding:10px 0 0">
+        <!-- Row 1: summary blocks + add button -->
+        <div style="display:flex;gap:8px;align-items:stretch;margin-bottom:6px">
+          <div class="inv-summary-cell" style="flex:1;border-color:rgba(77,166,255,0.3)">
             <div class="summary-label">INVESTIS €</div>
             <div class="summary-value" id="totalEur" style="color:#4da6ff">—</div>
             <div class="summary-sub-eur" id="subEur"></div>
           </div>
-          <div class="inv-summary-cell" style="border-color:rgba(0,230,118,0.3)">
+          <div class="inv-summary-cell" style="flex:1;border-color:rgba(0,230,118,0.3)">
             <div class="summary-label">INVESTIS $</div>
             <div class="summary-value" id="totalUsd" style="color:#00e676">—</div>
             <div class="summary-sub-usd" id="subUsd"></div>
           </div>
+          <button class="btn-sm accent icon-only" onclick="openInvModal()" title="Ajouter" style="align-self:stretch;padding:0 12px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </button>
         </div>
-        <button class="btn-sm accent icon-only" onclick="openInvModal()" style="flex-shrink:0" title="Ajouter">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
-            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-        </button>
+        <!-- Row 2: filters -->
+        <div style="display:flex;gap:6px;padding:6px 0;border-top:1px solid var(--border);border-bottom:none">
+          <button class="btn-sm sort-active" id="invFilterAll" onclick="resetInvFilter()">TOUS</button>
+          <button class="btn-sm filter-btn" id="invFilterCEX" onclick="toggleInvFilter('CEX')">CEX</button>
+          <button class="btn-sm filter-btn" id="invFilterDEX" onclick="toggleInvFilter('DEX')">DEX</button>
+          <button class="btn-sm filter-btn" id="invFilterWALLET" onclick="toggleInvFilter('WALLET')">WAL</button>
+        </div>
+        <!-- Row 3: sub-filters (platforms) -->
+        <div id="invSubFilterRow" style="display:none;gap:6px;flex-wrap:wrap;padding:4px 0 6px;border-bottom:1px solid var(--border)"></div>
+        <div id="invFilterSep" style="height:1px;background:var(--border);margin-bottom:8px"></div>
       </div>
-      <!-- Filter row -->
-      <div id="invFilterRow" style="display:flex;gap:6px;padding:6px 0 6px;border-bottom:none">
-        <button class="btn-sm sort-active" id="invFilterAll" onclick="resetInvFilter()">TOUS</button>
-        <button class="btn-sm filter-btn" id="invFilterCEX" onclick="toggleInvFilter('CEX')">CEX</button>
-        <button class="btn-sm filter-btn" id="invFilterDEX" onclick="toggleInvFilter('DEX')">DEX</button>
-        <button class="btn-sm filter-btn" id="invFilterWALLET" onclick="toggleInvFilter('WALLET')">WAL</button>
-      </div>
-      <div id="invSubFilterRow" style="display:none;gap:6px;flex-wrap:wrap;padding:4px 0 8px;border-bottom:1px solid var(--border);margin-bottom:8px"></div>
-      <div id="invFilterSep" style="height:1px;background:var(--border);margin-bottom:8px"></div>
       <div class="inv-list" id="invList">
         <div class="empty-state" id="invEmpty">
           <div class="empty-icon">◈</div>
@@ -381,41 +379,50 @@
     </div>
 
     <div class="section" id="section-pnl">
-      <div class="section-header">
-        <div class="header-actions">
-          <button class="btn-sm filter-btn" id="filterCEX" onclick="toggleCat('CEX')">CEX</button>
-          <button class="btn-sm filter-btn" id="filterDEX" onclick="toggleCat('DEX')">DEX</button>
-          <button class="btn-sm filter-btn" id="filterWALLET" onclick="toggleCat('WALLET')">WAL</button>
-          <button class="btn-sm sort-btn" id="sortPnlBtn" onclick="setSort('pnl')" title="Trier par PnL">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <polyline points="19 12 12 19 5 12"/>
-            </svg>
-            PnL
-          </button>
-          <button class="btn-sm sort-btn" id="sort24hBtn" onclick="setSort('24h')" title="Trier par 24h">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <polyline points="19 12 12 19 5 12"/>
-            </svg>
-            24h
-          </button>
-          <button class="btn-sm icon-only" id="refreshBtn" onclick="refreshPrices()" title="Actualiser">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="1 4 1 10 7 10"/>
-              <path d="M3.51 15a9 9 0 1 0 .49-4.95"/>
-            </svg>
-          </button>
-          <button class="btn-sm icon-only accent" onclick="openCryptoModal()" title="Ajouter">
+      <!-- Row 1: summary blocks + add button -->
+      <div style="position:sticky;top:0;background:#000;z-index:10;padding:10px 0 0">
+        <div style="display:flex;gap:8px;align-items:stretch;margin-bottom:6px">
+          <div class="summary-bar" id="summaryBar" style="display:none;flex:1;grid-template-columns:1fr 1fr;margin:0">
+            <div class="summary-cell"><div class="summary-label">Total PnL</div><div class="summary-value" id="sumPnl">—</div><div class="summary-sub" id="subPnl" style="font-family:'DM Mono',monospace;font-size:9px;margin-top:2px"></div></div>
+            <div class="summary-cell"><div class="summary-label">24h</div><div class="summary-value" id="sum24h">—</div><div class="summary-sub" id="sub24h" style="font-family:'DM Mono',monospace;font-size:9px;margin-top:2px"></div></div>
+          </div>
+          <button class="btn-sm icon-only accent" onclick="openCryptoModal()" title="Ajouter" style="align-self:stretch;padding:0 12px">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
           </button>
         </div>
-      </div>
-      <div class="summary-bar" id="summaryBar" style="display:none">
-        <div class="summary-cell"><div class="summary-label">Total PnL</div><div class="summary-value" id="sumPnl">—</div><div class="summary-sub" id="subPnl" style="font-family:'DM Mono',monospace;font-size:9px;margin-top:2px"></div></div>
-        <div class="summary-cell"><div class="summary-label">24h</div><div class="summary-value" id="sum24h">—</div><div class="summary-sub" id="sub24h" style="font-family:'DM Mono',monospace;font-size:9px;margin-top:2px"></div></div>
+        <!-- Row 2: filters left, sort+refresh right -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:8px">
+          <div style="display:flex;gap:6px">
+            <button class="btn-sm sort-active" id="filterAll" onclick="clearFilters()">TOUS</button>
+            <button class="btn-sm filter-btn" id="filterCEX" onclick="toggleCat('CEX')">CEX</button>
+            <button class="btn-sm filter-btn" id="filterDEX" onclick="toggleCat('DEX')">DEX</button>
+            <button class="btn-sm filter-btn" id="filterWALLET" onclick="toggleCat('WALLET')">WAL</button>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn-sm sort-btn" id="sortPnlBtn" onclick="setSort('pnl')" title="Trier par PnL">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <polyline points="19 12 12 19 5 12"/>
+              </svg>
+              PnL
+            </button>
+            <button class="btn-sm sort-btn" id="sort24hBtn" onclick="setSort('24h')" title="Trier par 24h">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <polyline points="19 12 12 19 5 12"/>
+              </svg>
+              24h
+            </button>
+            <button class="btn-sm icon-only" id="refreshBtn" onclick="refreshPrices()" title="Actualiser">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="1 4 1 10 7 10"/>
+                <path d="M3.51 15a9 9 0 1 0 .49-4.95"/>
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
       <div class="crypto-list" id="cryptoList">
         <div class="empty-state" id="pnlEmpty">
@@ -603,6 +610,13 @@
   let currentSort = localStorage.getItem('portfolioSort') || null;
   let activeFilters = new Set(JSON.parse(localStorage.getItem('portfolioFilters') || 'null') || []);
 
+  function clearFilters() {
+    activeFilters.clear();
+    localStorage.removeItem('portfolioFilters');
+    updateFilterUI();
+    renderCryptos();
+  }
+
   function toggleCat(cat) {
     if (activeFilters.has(cat)) activeFilters.delete(cat);
     else activeFilters.add(cat);
@@ -612,6 +626,8 @@
   }
 
   function updateFilterUI() {
+    const allBtn = document.getElementById('filterAll');
+    if (allBtn) allBtn.classList.toggle('sort-active', activeFilters.size === 0);
     ['CEX','DEX','WALLET'].forEach(c => {
       const btn = document.getElementById('filter' + c);
       if (btn) btn.classList.toggle('active', activeFilters.has(c));
@@ -874,6 +890,7 @@
     if (countEl) countEl.textContent = appData.cryptos.length;
     const bar = document.getElementById('summaryBar');
     bar.style.display = appData.cryptos.length ? 'grid' : 'none';
+    bar.style.flex = '1';
 
     const sumPnlEl = document.getElementById('sumPnl');
     const sum24hEl = document.getElementById('sum24h');
@@ -976,6 +993,7 @@
   }
 
   let pendingDeleteIdx = -1;
+  let pendingDeleteType = 'crypto';
 
   function askDelete(idx) {
     pendingDeleteIdx = idx;
@@ -994,12 +1012,6 @@
   function closeConfirmModal() {
     document.getElementById('confirmModal').classList.remove('open');
     pendingDeleteIdx = -1;
-  }
-
-  function doConfirmedDelete() {
-    if (pendingDeleteIdx < 0) return;
-    deleteCrypto(pendingDeleteIdx);
-    closeConfirmModal();
   }
 
   function deleteCrypto(idx) {
@@ -1183,10 +1195,10 @@
         });
       });
       subRow.style.display = 'flex';
-      if (sep) sep.style.display = 'block';
+      if (sep) sep.style.display = 'none';
     } else {
       subRow.style.display = 'none';
-      if (sep) sep.style.display = 'block';
+      if (sep) sep.style.display = 'none';
     }
   }
 
@@ -1282,8 +1294,6 @@
     closeInvModal();
     setTimeout(() => document.getElementById('confirmModal').classList.add('open'), 200);
   }
-
-  let pendingDeleteType = 'crypto'; // 'crypto' | 'inv'
 
   function doConfirmedDelete() {
     if (pendingDeleteType === 'inv') {
