@@ -414,8 +414,8 @@
         </div>
       </div>
       <div class="summary-bar" id="summaryBar" style="display:none">
-        <div class="summary-cell"><div class="summary-label">Total PnL</div><div class="summary-value" id="sumPnl">—</div></div>
-        <div class="summary-cell"><div class="summary-label">24h</div><div class="summary-value" id="sum24h">—</div></div>
+        <div class="summary-cell"><div class="summary-label">Total PnL</div><div class="summary-value" id="sumPnl">—</div><div class="summary-sub" id="subPnl" style="font-family:'DM Mono',monospace;font-size:9px;margin-top:2px"></div></div>
+        <div class="summary-cell"><div class="summary-label">24h</div><div class="summary-value" id="sum24h">—</div><div class="summary-sub" id="sub24h" style="font-family:'DM Mono',monospace;font-size:9px;margin-top:2px"></div></div>
       </div>
       <div class="crypto-list" id="cryptoList">
         <div class="empty-state" id="pnlEmpty">
@@ -838,7 +838,7 @@
           </div>
           <div class="card-stat" style="margin-left:auto">
             <span class="stat-lbl">Qté</span>
-            <span class="stat-val">${crypto.qty % 1 === 0 ? crypto.qty : parseFloat(crypto.qty.toFixed(4))}</span>
+            <span class="stat-val">${crypto.qty}</span>
           </div>
         </div>
       `;
@@ -846,40 +846,69 @@
     });
 
     // Summary
-    let totalPnl = 0, total24hVal = 0, total24hBase = 0, hasPnl = false, has24h = false;
-    appData.cryptos.forEach(crypto => {
-      const live = liveData[crypto.symbol] || {};
-      if (live.price != null) {
-        const cur = live.price * crypto.qty;
-        const buy = crypto.buyPrice * crypto.qty;
-        totalPnl += cur - buy;
-        hasPnl = true;
-      }
-      if (live.change24h != null && live.price != null) {
-        const cur = live.price * crypto.qty;
-        total24hVal += cur * (live.change24h / 100);
-        total24hBase += live.price * crypto.qty / (1 + live.change24h / 100);
-        has24h = true;
-      }
-    });
+    // Compute totals: global + filtered
+    function computeTotals(cryptos) {
+      let pnl = 0, val24 = 0, base24 = 0, buy = 0, hasPnl = false, has24h = false;
+      cryptos.forEach(crypto => {
+        const live = liveData[crypto.symbol] || {};
+        if (live.price != null) {
+          const cur = live.price * crypto.qty;
+          const b = crypto.buyPrice * crypto.qty;
+          pnl += cur - b; buy += b; hasPnl = true;
+        }
+        if (live.change24h != null && live.price != null) {
+          const cur = live.price * crypto.qty;
+          val24 += cur * (live.change24h / 100);
+          base24 += live.price * crypto.qty / (1 + live.change24h / 100);
+          has24h = true;
+        }
+      });
+      return { pnl, buy, val24, base24, hasPnl, has24h };
+    }
+
+    const globalT = computeTotals(appData.cryptos);
+    const filteredT = computeTotals(sorted);
+    const isFiltered = activeFilters.size > 0;
+
     const countEl = document.getElementById('cryptoCount');
     if (countEl) countEl.textContent = appData.cryptos.length;
     const bar = document.getElementById('summaryBar');
     bar.style.display = appData.cryptos.length ? 'grid' : 'none';
+
     const sumPnlEl = document.getElementById('sumPnl');
     const sum24hEl = document.getElementById('sum24h');
-    if (hasPnl) {
-      let totalBuyAmt = 0;
-      appData.cryptos.forEach(c => { if ((liveData[c.symbol] || {}).price != null) totalBuyAmt += c.buyPrice * c.qty; });
-      const totalPnlPct = totalBuyAmt > 0 ? (totalPnl / totalBuyAmt) * 100 : null;
-      sumPnlEl.textContent = (totalPnl >= 0 ? '+' : '') + '$' + fmt(Math.abs(totalPnl)) + (totalPnlPct != null ? ' (' + (totalPnlPct >= 0 ? '+' : '') + totalPnlPct.toFixed(1) + '%)' : '');
-      sumPnlEl.className = 'summary-value ' + (totalPnl >= 0 ? 'up' : 'down');
-    } else { sumPnlEl.textContent = '—'; sumPnlEl.className = 'summary-value'; }
-    if (has24h) {
-      const pct24h = total24hBase > 0 ? (total24hVal / total24hBase) * 100 : 0;
-      sum24hEl.textContent = (total24hVal >= 0 ? '+' : '') + '$' + fmt(Math.abs(total24hVal)) + ' (' + (pct24h >= 0 ? '+' : '') + pct24h.toFixed(2) + '%)';
-      sum24hEl.className = 'summary-value ' + (total24hVal >= 0 ? 'up' : 'down');
-    } else { sum24hEl.textContent = '—'; sum24hEl.className = 'summary-value'; }
+    const subPnlEl = document.getElementById('subPnl');
+    const sub24hEl = document.getElementById('sub24h');
+
+    // Total PnL
+    if (globalT.hasPnl) {
+      const pct = globalT.buy > 0 ? (globalT.pnl / globalT.buy) * 100 : null;
+      sumPnlEl.textContent = (globalT.pnl >= 0 ? '+' : '') + '$' + fmt(Math.abs(globalT.pnl)) + (pct != null ? ' (' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%)' : '');
+      sumPnlEl.className = 'summary-value ' + (globalT.pnl >= 0 ? 'up' : 'down');
+      if (subPnlEl) {
+        if (isFiltered && filteredT.hasPnl && filteredT.pnl !== globalT.pnl) {
+          const fpct = filteredT.buy > 0 ? (filteredT.pnl / filteredT.buy) * 100 : null;
+          subPnlEl.textContent = 'dont ' + (filteredT.pnl >= 0 ? '+' : '') + '$' + fmt(Math.abs(filteredT.pnl)) + (fpct != null ? ' (' + (fpct >= 0 ? '+' : '') + fpct.toFixed(1) + '%)' : '');
+          subPnlEl.style.color = filteredT.pnl >= 0 ? 'var(--green)' : 'var(--red)';
+          subPnlEl.style.opacity = '0.75';
+        } else { subPnlEl.textContent = ''; }
+      }
+    } else { sumPnlEl.textContent = '—'; sumPnlEl.className = 'summary-value'; if (subPnlEl) subPnlEl.textContent = ''; }
+
+    // 24h
+    if (globalT.has24h) {
+      const pct = globalT.base24 > 0 ? (globalT.val24 / globalT.base24) * 100 : 0;
+      sum24hEl.textContent = (globalT.val24 >= 0 ? '+' : '') + '$' + fmt(Math.abs(globalT.val24)) + ' (' + (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%)';
+      sum24hEl.className = 'summary-value ' + (globalT.val24 >= 0 ? 'up' : 'down');
+      if (sub24hEl) {
+        if (isFiltered && filteredT.has24h && filteredT.val24 !== globalT.val24) {
+          const fpct = filteredT.base24 > 0 ? (filteredT.val24 / filteredT.base24) * 100 : 0;
+          sub24hEl.textContent = 'dont ' + (filteredT.val24 >= 0 ? '+' : '') + '$' + fmt(Math.abs(filteredT.val24)) + ' (' + (fpct >= 0 ? '+' : '') + fpct.toFixed(2) + '%)';
+          sub24hEl.style.color = filteredT.val24 >= 0 ? 'var(--green)' : 'var(--red)';
+          sub24hEl.style.opacity = '0.75';
+        } else { sub24hEl.textContent = ''; }
+      }
+    } else { sum24hEl.textContent = '—'; sum24hEl.className = 'summary-value'; if (sub24hEl) sub24hEl.textContent = ''; }
   }
 
   function fmt(n) {
