@@ -1834,6 +1834,7 @@
     updateSuiviFilterUI();
     const savedTab = localStorage.getItem('portfolioTab') || 'investments';
     if (savedTab === 'pnl') switchTab('pnl');
+    else if (savedTab === 'suivi') switchTab('suivi');
     else prefetchIcons(appData.cryptos.map(c => c.symbol));
   } catch(e) {
     console.error('Init error:', e);
