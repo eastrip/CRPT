@@ -439,12 +439,30 @@
             <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--yellow);opacity:0.75;margin-top:2px" id="suiviSubSuivi"></div>
           </div>
         </div>
-        <!-- Row 2: filters -->
-        <div style="display:flex;gap:6px;padding:6px 0;border-top:1px solid var(--border);border-bottom:none">
-          <button class="btn-sm sort-active" id="suiviFilterAll" onclick="resetSuiviFilter()">TOUS</button>
-          <button class="btn-sm filter-btn" id="suiviFilterCEX" onclick="toggleSuiviCat('CEX')">CEX</button>
-          <button class="btn-sm filter-btn" id="suiviFilterDEX" onclick="toggleSuiviCat('DEX')">DEX</button>
-          <button class="btn-sm filter-btn" id="suiviFilterWALLET" onclick="toggleSuiviCat('WALLET')">WAL</button>
+        <!-- Row 2: filters + sort -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid var(--border);border-bottom:none">
+          <div style="display:flex;gap:6px">
+            <button class="btn-sm sort-active" id="suiviFilterAll" onclick="resetSuiviFilter()">TOUS</button>
+            <button class="btn-sm filter-btn" id="suiviFilterCEX" onclick="toggleSuiviCat('CEX')">CEX</button>
+            <button class="btn-sm filter-btn" id="suiviFilterDEX" onclick="toggleSuiviCat('DEX')">DEX</button>
+            <button class="btn-sm filter-btn" id="suiviFilterWALLET" onclick="toggleSuiviCat('WALLET')">WAL</button>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn-sm sort-btn" id="suiviSortAmt" onclick="setSuiviSort('amount')" title="Trier par valeur" >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <polyline points="19 12 12 19 5 12"/>
+              </svg>
+              $
+            </button>
+            <button class="btn-sm sort-btn" id="suiviSortAlpha" onclick="setSuiviSort('alpha')" title="Trier alphabétiquement" >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <polyline points="19 12 12 19 5 12"/>
+              </svg>
+              A-Z
+            </button>
+          </div>
         </div>
         <div id="suiviSubFilterRow" style="display:none;gap:6px;flex-wrap:wrap;padding:4px 0 6px;border-bottom:1px solid var(--border)"></div>
         <div id="suiviFilterSep" style="height:1px;background:var(--border);margin-bottom:8px;display:block"></div>
@@ -719,7 +737,10 @@
     else if (wsBinance) { wsBinance.close(); wsBinance = null; }
   }
 
-  let currentSort = localStorage.getItem('portfolioSort') || null;
+  let _rawSort = localStorage.getItem('portfolioSort') || null;
+  if (_rawSort === 'pnl')  _rawSort = 'pnl-desc';
+  if (_rawSort === '24h')  _rawSort = '24h-desc';
+  let currentSort = _rawSort; // null | 'pnl-desc' | 'pnl-asc' | '24h-desc' | '24h-asc'
   let activeFilters = new Set(JSON.parse(localStorage.getItem('portfolioFilters') || 'null') || []);
 
   function clearFilters() {
@@ -747,16 +768,29 @@
   }
 
   function setSort(type) {
-    currentSort = currentSort === type ? null : type;
+    // Cycle: null → desc → asc → null
+    if (currentSort === type + '-desc') currentSort = type + '-asc';
+    else if (currentSort === type + '-asc') currentSort = null;
+    else currentSort = type + '-desc';
     if (currentSort) localStorage.setItem('portfolioSort', currentSort);
     else localStorage.removeItem('portfolioSort');
     updateSortUI();
     renderCryptos();
   }
 
+  const SORT_ARROWS = { desc: '↓', asc: '↑', none: '↓' };
   function updateSortUI() {
-    document.getElementById('sortPnlBtn').classList.toggle('sort-active', currentSort === 'pnl');
-    document.getElementById('sort24hBtn').classList.toggle('sort-active', currentSort === '24h');
+    [['sortPnlBtn','pnl'],['sort24hBtn','24h']].forEach(([id, type]) => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      const isDesc = currentSort === type + '-desc';
+      const isAsc  = currentSort === type + '-asc';
+      const active = isDesc || isAsc;
+      btn.classList.toggle('sort-active', active);
+      // Update arrow SVG rotation via style
+      const svg = btn.querySelector('svg');
+      if (svg) svg.style.transform = isAsc ? 'rotate(180deg)' : '';
+    });
   }
 
   // ── CoinGecko ──
@@ -774,7 +808,10 @@
     XMR:'monero',DASH:'dash',IOTA:'iota',ZEC:'zcash',
     TON:'the-open-network',
     ENA:'ethena',
-    HYPE:'hyperliquid'
+    HYPE:'hyperliquid',
+    USDC:'usd-coin',
+    ARB:'arbitrum',
+    POL:'polygon-ecosystem-token'
   };
   function cgId(s) { return CGIDS[s.toUpperCase()] || s.toLowerCase(); }
 
@@ -888,19 +925,21 @@
     let sorted = activeFilters.size > 0
       ? appData.cryptos.filter(c => activeFilters.has(c.category || 'CEX'))
       : [...appData.cryptos];
-    if (currentSort === 'pnl') {
+    if (currentSort === 'pnl-desc' || currentSort === 'pnl-asc') {
+      const dir = currentSort === 'pnl-desc' ? -1 : 1;
       sorted.sort((a, b) => {
         const la = liveData[a.symbol] || {}, lb = liveData[b.symbol] || {};
         const pa = la.price != null ? ((la.price - a.buyPrice) / a.buyPrice) * 100 : -Infinity;
         const pb = lb.price != null ? ((lb.price - b.buyPrice) / b.buyPrice) * 100 : -Infinity;
-        return pb - pa;
+        return dir * (pb - pa);
       });
-    } else if (currentSort === '24h') {
+    } else if (currentSort === '24h-desc' || currentSort === '24h-asc') {
+      const dir = currentSort === '24h-desc' ? -1 : 1;
       sorted.sort((a, b) => {
         const la = liveData[a.symbol] || {}, lb = liveData[b.symbol] || {};
         const ca = la.change24h != null ? la.change24h : -Infinity;
         const cb = lb.change24h != null ? lb.change24h : -Infinity;
-        return cb - ca;
+        return dir * (cb - ca);
       });
     }
 
@@ -1600,8 +1639,38 @@
     setTimeout(() => document.getElementById('confirmModal').classList.add('open'), 200);
   }
 
+  let _rawSuiviSort = localStorage.getItem('suiviSort') || null;
+  // Migrate old format (e.g. 'amount' → 'amount-desc')
+  if (_rawSuiviSort === 'amount') _rawSuiviSort = 'amount-desc';
+  if (_rawSuiviSort === 'alpha')  _rawSuiviSort = 'alpha-desc';
+  if (_rawSuiviSort === 'none')   _rawSuiviSort = null;
+  let suiviSort = _rawSuiviSort; // null | 'amount-desc' | 'amount-asc' | 'alpha-desc' | 'alpha-asc'
   let activeSuiviCats = new Set(JSON.parse(localStorage.getItem('suiviCatsFilter') || '[]'));
   let activeSuiviSubs = new Set(JSON.parse(localStorage.getItem('suiviSubsFilter') || '[]'));
+
+  function setSuiviSort(type) {
+    if (suiviSort === type + '-desc') suiviSort = type + '-asc';
+    else if (suiviSort === type + '-asc') suiviSort = null;
+    else suiviSort = type + '-desc';
+    try {
+      if (suiviSort) localStorage.setItem('suiviSort', suiviSort);
+      else localStorage.removeItem('suiviSort');
+    } catch {}
+    updateSuiviSortUI();
+    renderSuivi();
+  }
+
+  function updateSuiviSortUI() {
+    [['suiviSortAmt','amount'],['suiviSortAlpha','alpha']].forEach(([id, type]) => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      const isDesc = suiviSort === type + '-desc';
+      const isAsc  = suiviSort === type + '-asc';
+      btn.classList.toggle('sort-active', isDesc || isAsc);
+      const svg = btn.querySelector('svg');
+      if (svg) svg.style.transform = isAsc ? 'rotate(180deg)' : '';
+    });
+  }
 
   function resetSuiviFilter() {
     activeSuiviCats.clear();
@@ -1635,6 +1704,7 @@
   }
 
   function updateSuiviFilterUI() {
+    updateSuiviSortUI();
     const COLORS = {
       CEX:    { border: 'rgba(255,255,255,0.4)', color: '#fff',    bg: 'rgba(255,255,255,0.06)' },
       DEX:    { border: 'rgba(255,140,0,0.5)',   color: '#ff8c00', bg: 'rgba(255,140,0,0.08)'   },
@@ -1727,10 +1797,16 @@
     const subInvEl = document.getElementById('suiviSubInv');
     const subSuiviEl = document.getElementById('suiviSubSuivi');
 
-    if (invEl) invEl.textContent = allPlatformInv > 0 ? '$ ' + fmt(allPlatformInv) : '—';
-    if (suiviEl) suiviEl.textContent = allPlatformSuivi > 0 ? '$ ' + fmt(allPlatformSuivi) : '—';
+    const pctGlobal = allPlatformInv > 0 ? (allPlatformSuivi / allPlatformInv) * 100 : null;
+    const pctFilt   = filtInv > 0 ? (filtSuivi / filtInv) * 100 : null;
+    if (invEl) invEl.textContent = allPlatformInv > 0 ? '$ ' + fmt(allPlatformInv) : '—';
+    if (suiviEl) suiviEl.textContent = allPlatformSuivi > 0
+      ? '$ ' + fmt(allPlatformSuivi) + (pctGlobal != null ? '  (' + pctGlobal.toFixed(1) + '%)' : '')
+      : '—';
     if (subInvEl) subInvEl.textContent = (isFiltered && filtInv !== allPlatformInv) ? 'dont $ ' + fmt(filtInv) : '';
-    if (subSuiviEl) subSuiviEl.textContent = (isFiltered && filtSuivi !== allPlatformSuivi) ? 'dont $ ' + fmt(filtSuivi) : '';
+    if (subSuiviEl) subSuiviEl.textContent = (isFiltered && filtSuivi !== allPlatformSuivi)
+      ? 'dont $ ' + fmt(filtSuivi) + (pctFilt != null ? '  (' + pctFilt.toFixed(1) + '%)' : '')
+      : '';
 
     // Prefetch icons for all suivi entries
     const suiviSymbols = [...new Set(Object.values(appData.suivi).flat().map(e => e.sym))];
@@ -1754,10 +1830,17 @@
       const entries = appData.suivi[platform];
       // Sort: USDC first, then active cryptos, then changed ones
       const sortedEntries = [...entries].sort((a, b) => {
+        // USDC always first
         if (a.sym === 'USDC') return -1;
         if (b.sym === 'USDC') return 1;
+        // changed always last, but sorted among themselves
         if (a.changed && !b.changed) return 1;
         if (!a.changed && b.changed) return -1;
+        // within same group, sort by active sort
+        if (suiviSort === 'amount-desc') return b.amount - a.amount;
+        if (suiviSort === 'amount-asc')  return a.amount - b.amount;
+        if (suiviSort === 'alpha-desc')  return a.sym.localeCompare(b.sym);
+        if (suiviSort === 'alpha-asc')   return b.sym.localeCompare(a.sym);
         return 0;
       });
       const totalEntries = entries.reduce((s, e) => s + (e.amount || 0), 0);
@@ -1768,7 +1851,13 @@
 
       // Header
       const header = document.createElement('div');
+      const headerBg = cat === 'CEX'
+        ? 'rgba(255,255,255,0.07)'
+        : cat === 'DEX'
+        ? 'rgba(255,140,0,0.12)'
+        : 'rgba(77,166,255,0.12)';
       header.className = 'suivi-header';
+      header.style.background = headerBg;
       header.innerHTML = `
         <span class="suivi-platform ${catClass}">${platform}</span>
         <div class="suivi-stats">
@@ -1828,6 +1917,7 @@
     updateSortUI();
     updateFilterUI();
     updateInvFilterUI();
+    updateSuiviSortUI();
     renderCryptos();
     renderInvestments();
     renderSuivi();
