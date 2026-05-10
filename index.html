@@ -258,8 +258,8 @@
       color: var(--text-dim); font-family: 'DM Mono', monospace; font-size: 10px;
       letter-spacing: 0.12em; cursor: pointer; transition: all 0.15s;
     }
-    .footer-btn:hover { border-color: var(--border-bright); color: var(--text); }
-    .footer-btn.save:hover { border-color: rgba(200,255,0,0.4); color: var(--accent); }
+    .footer-btn:hover { border-color: rgba(255,255,255,0.6); color: #ffffff; }
+    .footer-btn.save:hover { border-color: rgba(255,255,255,0.6); color: #ffffff; }
     .footer-btn svg { width: 12px; height: 12px; flex-shrink: 0; }
 
     /* ── Category buttons ── */
@@ -334,12 +334,12 @@
       border: 1px dashed var(--border-bright); border-radius: 2px;
       padding: 26px; text-align: center; cursor: pointer; transition: all 0.15s; margin-bottom: 18px;
     }
-    .file-drop:hover, .file-drop.drag { border-color: rgba(200,255,0,0.4); }
+    .file-drop:hover, .file-drop.drag { border-color: rgba(255,255,255,0.5); }
     .file-drop-icon { font-size: 20px; margin-bottom: 8px; }
     .file-drop-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-dim); letter-spacing: 0.1em; }
-    .file-drop-label span { color: var(--accent); }
+    .file-drop-label span { color: rgba(255,255,255,0.8); }
     #fileInput { display: none; }
-    .file-selected { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--accent); letter-spacing: 0.1em; margin-top: 6px; }
+    .file-selected { font-family: 'DM Mono', monospace; font-size: 10px; color: rgba(255,255,255,0.8); letter-spacing: 0.1em; margin-top: 6px; }
 
     /* ── Suivi ── */
     .suivi-block {
@@ -718,7 +718,7 @@
       <input type="file" id="fileInput" accept=".json" onchange="onFileSelect(event)">
       <div class="modal-actions">
         <button class="modal-btn cancel" onclick="closeRestoreModal()">ANNULER</button>
-        <button class="modal-btn confirm" onclick="doRestore()">RESTAURER</button>
+        <button class="modal-btn confirm" onclick="doRestore()" style="background:#ffffff;color:#000;border-color:#ffffff">RESTAURER</button>
       </div>
     </div>
   </div>
@@ -735,7 +735,7 @@
       <p id="confirmText" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);letter-spacing:.08em;line-height:1.7;margin-bottom:20px;"></p>
       <div class="modal-actions">
         <button class="modal-btn cancel" onclick="closeConfirmModal()">ANNULER</button>
-        <button class="modal-btn danger" onclick="doConfirmedDelete()">SUPPRIMER</button>
+        <button class="modal-btn danger" onclick="doConfirmedDelete()" style="background:#ffffff;color:#000;border-color:#ffffff">SUPPRIMER</button>
       </div>
     </div>
   </div>
