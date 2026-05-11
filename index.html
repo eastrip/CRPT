@@ -47,6 +47,7 @@
     .tab:hover { color: var(--text); background: rgba(255,255,255,0.02); }
     .tab.active.investments { color: #4da6ff; border-bottom-color: #4da6ff; background: rgba(77,166,255,0.08); }
     .tab.active.pnl { color: #FF4081; border-bottom-color: #FF4081; background: rgba(255,64,129,0.08); }
+    .tab.active.memo { color: #B2FF59; border-bottom-color: #B2FF59; background: rgba(178,255,89,0.08); }
     .tab.active.suivi { color: #FFD600; border-bottom-color: #FFD600; background: rgba(255,214,0,0.08); }
 
     /* ── Main ── */
@@ -383,6 +384,46 @@
       white-space: nowrap;
     }
 
+
+    /* ── Memo ── */
+    #section-memo .btn-sm.sort-active { border-color: rgba(178,255,89,0.4) !important; color: #B2FF59 !important; }
+    #memoModal .modal-btn.confirm { background: #B2FF59; color: #000; border-color: #B2FF59; }
+    #memoModal .modal-btn.confirm:hover { background: #c5ff7a; }
+    #predModal .modal-btn.confirm { background: #B2FF59; color: #000; border-color: #B2FF59; }
+    #predModal .modal-btn.confirm:hover { background: #c5ff7a; }
+    .memo-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 2px; margin-bottom: 8px; overflow: hidden;
+    }
+    .memo-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; border-bottom: 1px solid var(--border);
+    }
+    .memo-sym { font-size: 13px; font-weight: 700; flex: 1; }
+    .memo-note-text {
+      font-family: 'DM Mono', monospace; font-size: 11px;
+      color: var(--text); padding: 10px 12px; line-height: 1.7;
+      border-bottom: 1px solid var(--border);
+      border-left: 2px solid rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.03);
+    }
+    .pred-row {
+      display: flex; flex-direction: column; gap: 3px;
+      padding: 6px 10px; border-top: 1px solid var(--border);
+      font-family: 'DM Mono', monospace; font-size: 10px;
+    }
+    .pred-row-main { display: flex; align-items: center; gap: 8px; }
+    .pred-row:first-of-type { border-top: none; }
+    .pred-date { color: var(--text-dim); flex: 0 0 70px; }
+    .pred-price { color: #B2FF59; font-weight: 600; flex: 1; }
+    .pred-note { color: var(--text-dim); font-size: 9px; flex: 2; font-style: italic; }
+    .memo-add-pred {
+      display: flex; align-items: center; justify-content: center;
+      padding: 6px; border-top: 1px solid var(--border);
+      cursor: pointer; transition: background 0.15s;
+    }
+    .memo-add-pred:hover { background: rgba(178,255,89,0.04); }
+
     /* ── Toast ── */
     .toast {
       position: fixed; bottom: 70px; left: 50%;
@@ -414,6 +455,9 @@
     </button>
     <button class="tab suivi" onclick="switchTab('suivi')">
       <span>◎</span> Suivi
+    </button>
+    <button class="tab memo" onclick="switchTab('memo')">
+      <span>✦</span> Memo
     </button>
     <button class="tab pnl" onclick="switchTab('pnl')">
       <span>▲</span> <span style="letter-spacing:0">PnL (<span id="cryptoCount">0</span>)</span>
@@ -510,6 +554,48 @@
         <div id="suiviFilterSep" style="height:1px;background:var(--border);margin-bottom:8px;display:block"></div>
       </div>
       <div id="suiviContainer"></div>
+    </div>
+
+
+    <div class="section" id="section-memo">
+      <div style="position:sticky;top:0;background:#000;z-index:10;padding:10px 0 0">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:none">
+          <div style="display:flex;gap:6px">
+            <button class="btn-sm sort-btn" id="memoSortAlpha" onclick="setMemoSort('alpha')" title="Trier A-Z">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <polyline points="19 12 12 19 5 12"/>
+              </svg>
+              A-Z
+            </button>
+            <button class="btn-sm sort-btn" id="memoSortDate" onclick="setMemoSort('date')" title="Trier par prochaine prédiction">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <polyline points="19 12 12 19 5 12"/>
+              </svg>
+              Date
+            </button>
+          </div>
+          <button class="btn-sm icon-only" onclick="openMemoModal()" title="Ajouter une crypto" style="border-color:rgba(178,255,89,0.4);color:#B2FF59">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </button>
+        </div>
+        <!-- Filter row: horizon -->
+        <div style="display:flex;gap:6px;padding:5px 0;border-bottom:1px solid var(--border);margin-bottom:8px">
+          <button class="btn-sm sort-active" id="memoFilterAll" onclick="setMemoHorizon(null)">TOUS</button>
+          <button class="btn-sm" id="memoFilterCourt" onclick="setMemoHorizon('court')">COURT</button>
+          <button class="btn-sm" id="memoFilterMoyen" onclick="setMemoHorizon('moyen')">MOYEN</button>
+          <button class="btn-sm" id="memoFilterLong" onclick="setMemoHorizon('long')">LONG</button>
+        </div>
+      </div>
+      <div id="memoContainer">
+        <div class="empty-state">
+          <div class="empty-icon">✦</div>
+          <p>Aucune crypto</p>
+        </div>
+      </div>
     </div>
 
     <div class="section" id="section-pnl">
@@ -705,6 +791,64 @@
   </div>
 </div>
 
+<!-- Memo Modal (add/edit crypto) -->
+<div class="modal-overlay" id="memoModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="memoModalTitle">Ajouter une crypto</span>
+      <button class="modal-close" onclick="closeMemoModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Symbole</label>
+        <input class="form-input" id="memoSymbol" type="text" placeholder="BTC"
+          autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false"
+          oninput="this.value=this.value.toUpperCase()" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Note globale</label>
+        <textarea class="form-input" id="memoNote" rows="3" placeholder="Analyse, stratégie…" style="resize:none;line-height:1.6"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn danger" id="memoBtnDelete" style="display:none;margin-right:auto" onclick="askDeleteMemo()">SUPPRIMER</button>
+        <button class="modal-btn cancel" onclick="closeMemoModal()">ANNULER</button>
+        <button class="modal-btn confirm" id="memoBtnConfirm" onclick="saveMemo()">AJOUTER</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Prediction Modal -->
+<div class="modal-overlay" id="predModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="predModalTitle">Ajouter une prédiction</span>
+      <button class="modal-close" onclick="closePredModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date estimée</label>
+          <input class="form-input" id="predDate" type="date" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Prix cible $</label>
+          <input class="form-input" id="predPrice" type="number" placeholder="0.00" step="any" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Note (optionnel)</label>
+        <input class="form-input" id="predNote" type="text" placeholder="Pourquoi ce niveau…" />
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn danger" id="predBtnDelete" style="display:none;margin-right:auto" onclick="askDeletePred()">SUPPRIMER</button>
+        <button class="modal-btn cancel" onclick="closePredModal()">ANNULER</button>
+        <button class="modal-btn confirm" id="predBtnConfirm" onclick="savePred()">AJOUTER</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Chart Modal -->
 <div class="modal-overlay" id="chartModal">
   <div class="modal" style="max-width:480px">
@@ -713,8 +857,7 @@
       <button class="modal-close" onclick="closeChartModal()">×</button>
     </div>
     <div class="modal-body">
-      <canvas id="chartCanvas" style="width:100%;border-radius:2px"></canvas>
-      <div id="chartLegend" style="margin-top:16px;display:flex;flex-direction:column;gap:6px"></div>
+      <div id="chartBars" style="display:flex;flex-direction:column;gap:6px"></div>
     </div>
   </div>
 </div>
@@ -790,6 +933,7 @@
     localStorage.setItem('portfolioTab', tab);
     if (tab === 'pnl') { prefetchIcons(appData.cryptos.map(c => c.symbol)); refreshPrices(); }
     else if (tab === 'suivi') renderSuivi();
+    else if (tab === 'memo') renderMemo();
     else if (wsBinance) { wsBinance.close(); wsBinance = null; }
   }
 
@@ -1283,7 +1427,8 @@
         appData = JSON.parse(e.target.result);
         if (!appData.cryptos) appData.cryptos = [];
         if (!appData.investments) appData.investments = [];
-        saveData(); renderCryptos(); renderInvestments(); renderSuivi(); closeRestoreModal();
+        if (!appData.memo) appData.memo = [];
+        saveData(); renderCryptos(); renderInvestments(); renderSuivi(); renderMemo(); closeRestoreModal();
         showToast('Données restaurées', 'success');
       } catch { showToast('Fichier JSON invalide', 'error'); }
     };
@@ -1301,7 +1446,7 @@
     else showToast('Fichier JSON requis', 'error');
   });
 
-  ['cryptoModal','invModal','suiviModal','restoreModal','confirmModal','chartModal'].forEach(id => {
+  ['cryptoModal','invModal','suiviModal','restoreModal','confirmModal','chartModal','memoModal','predModal'].forEach(id => {
     document.getElementById(id).addEventListener('click', function(e) {
       if (e.target === this) this.classList.remove('open');
     });
@@ -1317,7 +1462,7 @@
   }
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { closeCryptoModal(); closeRestoreModal(); closeConfirmModal(); closeInvModal(); closeSuiviModal(); closeChartModal(); }
+    if (e.key === 'Escape') { closeCryptoModal(); closeRestoreModal(); closeConfirmModal(); closeInvModal(); closeSuiviModal(); closeChartModal(); closeMemoModal(); closePredModal(); }
     if (e.key === 'Enter' && document.getElementById('cryptoModal').classList.contains('open')) saveCrypto();
   });
 
@@ -1519,6 +1664,14 @@
       appData.suivi[editingSuiviPlatform].splice(pendingDeleteIdx, 1);
       saveData(); renderSuivi();
       showToast('Entrée supprimée', 'success');
+    } else if (pendingDeleteType === 'memo') {
+      appData.memo.splice(pendingDeleteIdx, 1);
+      saveData(); renderMemo();
+      showToast('Crypto supprimée', 'success');
+    } else if (pendingDeleteType === 'pred') {
+      appData.memo[editingPredMemoIdx].preds.splice(pendingDeleteIdx, 1);
+      saveData(); renderMemo();
+      showToast('Prédiction supprimée', 'success');
     } else {
       deleteCrypto(pendingDeleteIdx);
     }
@@ -1618,6 +1771,278 @@
     if (!d) return '—';
     const [y, m, day] = d.split('-');
     return `${day}/${m}/${y}`;
+  }
+
+
+  // ── Memo ──
+  if (!appData.memo) appData.memo = []; // [{ sym, note, preds: [{date, price, note}] }]
+
+  let editingMemoIdx = -1;
+  let editingPredMemoIdx = -1;
+  let editingPredIdx = -1;
+
+  let memoSort = localStorage.getItem('memoSort') || null;
+  let memoHorizonFilter = localStorage.getItem('memoHorizon') || null; // null | 'court' | 'moyen' | 'long'
+
+  function setMemoHorizon(h) {
+    memoHorizonFilter = h;
+    try {
+      if (h) localStorage.setItem('memoHorizon', h);
+      else localStorage.removeItem('memoHorizon');
+    } catch {}
+    updateMemoFilterUI();
+    renderMemo();
+  }
+
+  function updateMemoFilterUI() {
+    const allBtn = document.getElementById('memoFilterAll');
+    const hColors  = { court: '#00f5ff',              moyen: '#FFD600',              long: '#FF4081'              };
+    const hBorders = { court: 'rgba(0,245,255,0.5)',   moyen: 'rgba(255,214,0,0.5)', long: 'rgba(255,64,129,0.5)' };
+    const hBgs     = { court: 'rgba(0,245,255,0.08)',  moyen: 'rgba(255,214,0,0.08)',long: 'rgba(255,64,129,0.08)'};
+
+    // TOUS button
+    if (allBtn) {
+      const isAll = !memoHorizonFilter;
+      allBtn.classList.toggle('sort-active', isAll);
+      allBtn.style.borderColor = isAll ? 'rgba(178,255,89,0.4)' : '';
+      allBtn.style.color       = isAll ? '#B2FF59' : '';
+    }
+
+    // Horizon buttons — same pattern as inv/suivi filters
+    ['court','moyen','long'].forEach(h => {
+      const btn = document.getElementById('memoFilter' + h.charAt(0).toUpperCase() + h.slice(1));
+      if (!btn) return;
+      const on = memoHorizonFilter === h;
+      btn.style.borderColor = on ? hBorders[h] : 'var(--border)';
+      btn.style.color       = on ? hColors[h]  : 'var(--text-dim)';
+      btn.style.background  = on ? hBgs[h]     : 'transparent';
+    });
+  }
+
+  function setMemoSort(type) {
+    if (memoSort === type + '-desc') memoSort = type + '-asc';
+    else if (memoSort === type + '-asc') memoSort = null;
+    else memoSort = type + '-desc';
+    try {
+      if (memoSort) localStorage.setItem('memoSort', memoSort);
+      else localStorage.removeItem('memoSort');
+    } catch {}
+    updateMemoSortUI();
+    renderMemo();
+  }
+
+  function updateMemoSortUI() {
+    [['memoSortAlpha','alpha'],['memoSortDate','date']].forEach(([id, type]) => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      const isDesc = memoSort === type + '-desc';
+      const isAsc  = memoSort === type + '-asc';
+      btn.classList.toggle('sort-active', isDesc || isAsc);
+      const svg = btn.querySelector('svg');
+      if (svg) svg.style.transform = isAsc ? 'rotate(180deg)' : '';
+    });
+  }
+
+  function openMemoModal(idx = -1) {
+    editingMemoIdx = idx;
+    const isEdit = idx >= 0;
+    document.getElementById('memoModalTitle').textContent = isEdit ? 'Modifier' : 'Ajouter une crypto';
+    document.getElementById('memoBtnConfirm').textContent = isEdit ? 'ENREGISTRER' : 'AJOUTER';
+    document.getElementById('memoBtnDelete').style.display = isEdit ? 'block' : 'none';
+    document.getElementById('memoSymbol').value = isEdit ? appData.memo[idx].sym : '';
+    document.getElementById('memoSymbol').disabled = isEdit;
+    document.getElementById('memoNote').value = isEdit ? (appData.memo[idx].note || '') : '';
+    document.getElementById('memoModal').classList.add('open');
+    setTimeout(() => (isEdit ? document.getElementById('memoNote') : document.getElementById('memoSymbol')).focus(), 300);
+  }
+  function closeMemoModal() { document.getElementById('memoModal').classList.remove('open'); }
+
+  function saveMemo() {
+    const sym = document.getElementById('memoSymbol').value.trim().toUpperCase();
+    const note = document.getElementById('memoNote').value.trim();
+    if (!sym) { showToast('Symbole requis', 'error'); return; }
+    if (editingMemoIdx >= 0) {
+      appData.memo[editingMemoIdx].note = note;
+    } else {
+      if (appData.memo.find(m => m.sym === sym)) { showToast('Crypto déjà présente', 'error'); return; }
+      appData.memo.push({ sym, note, preds: [] });
+    }
+    saveData(); closeMemoModal(); renderMemo();
+  }
+
+  function askDeleteMemo() {
+    if (editingMemoIdx < 0) return;
+    pendingDeleteIdx = editingMemoIdx;
+    pendingDeleteType = 'memo';
+    document.getElementById('confirmText').textContent = 'Supprimer ' + appData.memo[editingMemoIdx].sym + ' et ses prédictions ? Irréversible.';
+    closeMemoModal();
+    setTimeout(() => document.getElementById('confirmModal').classList.add('open'), 200);
+  }
+
+  let currentHorizon = 'court';
+
+  function selectHorizon(h) {
+    currentHorizon = h;
+    ['court','moyen','long'].forEach(k => {
+      const btn = document.getElementById('horiz' + k.charAt(0).toUpperCase() + k.slice(1));
+      if (!btn) return;
+      const colors = { court: '#00f5ff', moyen: '#FFD600', long: '#FF4081' };
+      const on = k === h;
+      btn.classList.toggle('active', on);
+      btn.style.borderColor = on ? colors[k] : '';
+      btn.style.color = on ? colors[k] : '';
+      btn.style.background = on ? `${colors[k]}18` : '';
+    });
+  }
+
+  function openPredModal(memoIdx, predIdx = -1) {
+    editingPredMemoIdx = memoIdx;
+    editingPredIdx = predIdx;
+    const isEdit = predIdx >= 0;
+    document.getElementById('predModalTitle').textContent = isEdit ? 'Modifier la prédiction' : 'Ajouter une prédiction';
+    document.getElementById('predBtnConfirm').textContent = isEdit ? 'ENREGISTRER' : 'AJOUTER';
+    document.getElementById('predBtnDelete').style.display = isEdit ? 'block' : 'none';
+    const pred = isEdit ? appData.memo[memoIdx].preds[predIdx] : null;
+    document.getElementById('predDate').value = pred ? pred.date : new Date().toISOString().split('T')[0];
+    document.getElementById('predPrice').value = pred ? pred.price : '';
+    document.getElementById('predNote').value = pred ? (pred.note || '') : '';
+    selectHorizon(pred ? (pred.horizon || 'court') : 'court');
+    document.getElementById('predModal').classList.add('open');
+    setTimeout(() => document.getElementById('predPrice').focus(), 300);
+  }
+  function closePredModal() { document.getElementById('predModal').classList.remove('open'); }
+
+  function savePred() {
+    const date = document.getElementById('predDate').value;
+    const price = parseFloat(document.getElementById('predPrice').value);
+    const note = document.getElementById('predNote').value.trim();
+    const horizon = currentHorizon;
+    if (!date) { showToast('Date requise', 'error'); return; }
+    if (isNaN(price) || price <= 0) { showToast('Prix invalide', 'error'); return; }
+    const pred = { date, price, note, horizon };
+    if (editingPredIdx >= 0) {
+      appData.memo[editingPredMemoIdx].preds[editingPredIdx] = pred;
+    } else {
+      appData.memo[editingPredMemoIdx].preds.push(pred);
+    }
+    appData.memo[editingPredMemoIdx].preds.sort((a, b) => a.date.localeCompare(b.date));
+    saveData(); closePredModal(); renderMemo();
+  }
+
+  function askDeletePred() {
+    pendingDeleteIdx = editingPredIdx;
+    pendingDeleteType = 'pred';
+    document.getElementById('confirmText').textContent = 'Supprimer cette prédiction ? Irréversible.';
+    closePredModal();
+    setTimeout(() => document.getElementById('confirmModal').classList.add('open'), 200);
+  }
+
+  function renderMemo() {
+    const container = document.getElementById('memoContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    if (!appData.memo.length) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">✦</div><p>Aucune crypto</p></div>';
+      return;
+    }
+    // Sort
+    // Horizon filter — keep cryptos that have at least one pred matching horizon
+    const today = new Date();
+    function getAutoHorizon(dateStr) {
+      const diff = (new Date(dateStr) - today) / (1000 * 60 * 60 * 24 * 30);
+      return diff <= 3 ? 'court' : diff <= 12 ? 'moyen' : 'long';
+    }
+    let memoList = appData.memo;
+    if (memoHorizonFilter) {
+      memoList = appData.memo.filter(m =>
+        (m.preds || []).some(p => getAutoHorizon(p.date) === memoHorizonFilter)
+      );
+    }
+    let sortedMemo = memoList.map((m) => ({ m, i: appData.memo.indexOf(m) }));
+    if (memoSort === 'alpha-desc') sortedMemo.sort((a, b) => a.m.sym.localeCompare(b.m.sym));
+    else if (memoSort === 'alpha-asc') sortedMemo.sort((a, b) => b.m.sym.localeCompare(a.m.sym));
+    else if (memoSort === 'date-desc') sortedMemo.sort((a, b) => {
+      const da = a.m.preds.length ? a.m.preds[0].date : '9999';
+      const db = b.m.preds.length ? b.m.preds[0].date : '9999';
+      return da.localeCompare(db);
+    });
+    else if (memoSort === 'date-asc') sortedMemo.sort((a, b) => {
+      const da = a.m.preds.length ? a.m.preds[0].date : '0000';
+      const db = b.m.preds.length ? b.m.preds[0].date : '0000';
+      return db.localeCompare(da);
+    });
+
+    sortedMemo.forEach(({ m, i: mi }) => {
+      const iconUrl = iconCache[m.sym] || null;
+      const iconHtml = iconUrl
+        ? `<img class="card-icon" src="${iconUrl}" alt="${m.sym}" onerror="this.style.display='none'">`
+        : `<span class="card-icon-placeholder">${m.sym.slice(0,2)}</span>`;
+      const card = document.createElement('div');
+      card.className = 'memo-card';
+      let predsHtml = '';
+      const predsToShow = memoHorizonFilter
+        ? (m.preds || []).filter(p => getAutoHorizon(p.date) === memoHorizonFilter)
+        : (m.preds || []);
+      predsToShow.forEach((p, pi) => {
+        const realPi = (m.preds || []).indexOf(p);
+        // Auto horizon based on date
+        const today = new Date();
+        const predDate = new Date(p.date);
+        const diffMonths = (predDate - today) / (1000 * 60 * 60 * 24 * 30);
+        const autoHorizon = diffMonths <= 3 ? 'court' : diffMonths <= 12 ? 'moyen' : 'long';
+        const hColors = { court: '#00f5ff', moyen: '#FFD600', long: '#FF4081' };
+        const hLabels = { court: 'COURT', moyen: 'MOYEN', long: 'LONG' };
+        const hColor = hColors[autoHorizon];
+
+        // % hausse depuis prix live
+        const livePnl = liveData[m.sym];
+        const currentPrice = livePnl ? livePnl.price : null;
+        const pctHausse = currentPrice ? (((p.price - currentPrice) / currentPrice) * 100) : null;
+        const pctStr = pctHausse != null ? (pctHausse >= 0 ? '+' : '') + pctHausse.toFixed(1) + '%' : '';
+
+        predsHtml += `<div class="pred-row">
+          <div class="pred-row-main">
+            <span class="pred-date">${formatDate(p.date)}</span>
+            <span class="pred-price">$ ${fmt(p.price)}</span>
+            ${pctStr ? `<span style="font-family:'DM Mono',monospace;font-size:9px;color:${pctHausse>=0?'var(--green)':'var(--red)'};flex:0 0 auto">${pctStr}</span>` : ''}
+            <span style="font-family:'DM Mono',monospace;font-size:8px;padding:1px 5px;border-radius:2px;border:1px solid ${hColor};color:${hColor};flex:0 0 auto">${hLabels[autoHorizon]}</span>
+            <div class="card-actions" style="margin-left:auto">
+              <button class="card-btn edit" onclick="openPredModal(${mi}, ${realPi})">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+            </div>
+          </div>
+          ${p.note ? `<span class="pred-note" style="padding-left:2px">${p.note}</span>` : ''}
+        </div>`;
+      });
+      card.innerHTML = `
+        <div class="memo-header">
+          ${iconHtml}
+          <span class="memo-sym">${m.sym}</span>
+          <div class="card-actions">
+            <button class="card-btn edit" onclick="openMemoModal(${mi})">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="card-btn del" onclick="askDeleteMemoDirect(${mi})">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            </button>
+          </div>
+        </div>
+        ${m.note ? `<div class="memo-note-text">${m.note}</div>` : ''}
+        ${predsHtml}
+        <div class="memo-add-pred" onclick="openPredModal(${mi})">
+          <span style="font-family:'DM Mono',monospace;font-size:10px;color:#B2FF59;letter-spacing:0.1em">+ PRÉDICTION</span>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  function askDeleteMemoDirect(idx) {
+    pendingDeleteIdx = idx;
+    pendingDeleteType = 'memo';
+    document.getElementById('confirmText').textContent = 'Supprimer ' + appData.memo[idx].sym + ' et ses prédictions ? Irréversible.';
+    document.getElementById('confirmModal').classList.add('open');
   }
 
   // ── Suivi ──
@@ -2001,110 +2426,31 @@
 
     document.getElementById('chartModal').classList.add('open');
 
-    setTimeout(() => {
-      const colors = ['#FF4081','#4da6ff','#FFD600','#00e676','#FF6D00','#00f5ff','#ff5722','#9c27b0','#03a9f4','#8bc34a','#ffc107','#f06292'];
-      const canvas = document.getElementById('chartCanvas');
-      // Use window width minus modal padding (2*24px) capped at 480px
-      const W = Math.min(window.innerWidth - 48, 480) || 320;
-      const H = Math.round(W * 0.6);
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = W * dpr;
-      canvas.height = H * dpr;
-      canvas.style.width = W + 'px';
-      canvas.style.height = H + 'px';
-      const ctx = canvas.getContext('2d');
-      ctx.scale(dpr, dpr);
-
-      // Squarify treemap algorithm
-      function squarify(items, x, y, w, h) {
-        if (!items.length) return [];
-        const rects = [];
-        let remaining = [...items];
-        while (remaining.length) {
-          const isHoriz = w >= h;
-          const side = isHoriz ? h : w;
-          let row = [], rowSum = 0, best = Infinity;
-          for (let i = 0; i < remaining.length; i++) {
-            row.push(remaining[i]);
-            rowSum += remaining[i].value;
-            const rowW = rowSum / side;
-            let worst = 0;
-            row.forEach(r => {
-              const rh = r.value / rowSum * side;
-              worst = Math.max(worst, Math.max(rowW / rh, rh / rowW));
-            });
-            if (worst > best) { row.pop(); rowSum -= remaining[i].value; break; }
-            best = worst;
-          }
-          const rowW = rowSum / side;
-          let pos = isHoriz ? y : x;
-          row.forEach(r => {
-            const dim = r.value / rowSum * side;
-            if (isHoriz) rects.push({ item: r, x, y: pos, w: rowW, h: dim });
-            else         rects.push({ item: r, x: pos, y, w: dim, h: rowW });
-            pos += dim;
-          });
-          if (isHoriz) { x += rowW; w -= rowW; }
-          else         { y += rowW; h -= rowW; }
-          remaining = remaining.slice(row.length);
-        }
-        return rects;
-      }
-
-      const rects = squarify(items, 0, 0, W, H);
-      const SEP = 1.5; // separator between cells
-
-      rects.forEach((r, i) => {
-        const color = colors[i % colors.length];
-        const rx = r.x + SEP, ry = r.y + SEP, rw = r.w - SEP, rh = r.h - SEP;
-
-        // Fill cell
-        ctx.fillStyle = color;
-        ctx.fillRect(rx, ry, rw, rh);
-
-        if (rw < 28 || rh < 18) return;
-
-        // Text in top-left, white
-        const PAD = 7;
-        const pct = ((r.item.value / total) * 100).toFixed(1);
-        const amtStr = '$' + fmt(r.item.value);
-
-        ctx.fillStyle = 'rgba(255,255,255,0.95)';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'top';
-
-        // Amount (big)
-        const amtSize = Math.min(14, Math.max(9, rw / 6));
-        ctx.font = `600 ${amtSize}px 'DM Mono', monospace`;
-        if (ry + PAD + amtSize < ry + rh - 2) {
-          ctx.fillText(amtStr, rx + PAD, ry + PAD);
-        }
-
-        // Symbol (smaller, below)
-        if (rh > amtSize + 22) {
-          const symSize = Math.min(11, Math.max(8, rw / 8));
-          ctx.font = `bold ${symSize}px 'DM Mono', monospace`;
-          ctx.fillStyle = 'rgba(255,255,255,0.75)';
-          ctx.fillText(r.item.label + '  ' + pct + '%', rx + PAD, ry + PAD + amtSize + 3);
-        }
-      });
-
-      // Legend below
-      const legend = document.getElementById('chartLegend');
-      legend.innerHTML = '';
-      items.forEach((item, i) => {
-        const pct = ((item.value / total) * 100).toFixed(1);
-        const row = document.createElement('div');
-        row.style.cssText = 'display:flex;align-items:center;gap:8px';
-        row.innerHTML = `
-          <span style="width:8px;height:8px;border-radius:2px;background:${colors[i % colors.length]};flex-shrink:0"></span>
-          <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:700;flex:0 0 56px">${item.label}</span>
-          <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);flex:1">$${fmt(item.value)}</span>
-          <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600">${pct}%</span>
-        `;
-        legend.appendChild(row);
-      });
-    }, 50);
+    const colors = ['#FF4081','#4da6ff','#FFD600','#00e676','#FF6D00','#00f5ff','#ff5722','#9c27b0','#03a9f4','#8bc34a','#ffc107','#f06292'];
+    const bars = document.getElementById('chartBars');
+    bars.innerHTML = '';
+    const maxVal = items[0].value; // already sorted desc
+    items.forEach((item, i) => {
+      const pct = (item.value / total) * 100;
+      const pctStr = pct.toFixed(1);
+      const color = colors[i % colors.length];
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:10px';
+      const cIconUrl = iconCache[item.label] || null;
+      const cIconHtml = cIconUrl
+        ? `<img src="${cIconUrl}" alt="${item.label}" style="width:14px;height:14px;border-radius:50%;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'">`
+        : `<span style="width:14px;height:14px;border-radius:50%;background:var(--border);flex-shrink:0;display:inline-block"></span>`;
+      row.innerHTML = `
+        ${cIconHtml}
+        <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:700;flex:0 0 36px;color:#fff">${item.label}</span>
+        <div style="flex:1;background:var(--border);border-radius:2px;height:10px;overflow:hidden">
+          <div style="width:${(item.value/maxVal*100).toFixed(1)}%;height:100%;background:${color};border-radius:2px;min-width:3px"></div>
+        </div>
+        <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);white-space:nowrap;text-align:right;min-width:52px">$${fmt(item.value)}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;white-space:nowrap;text-align:right;min-width:36px;color:${color}">${pctStr}%</span>
+      `;
+      bars.appendChild(row);
+    });
   }
 
   function closeChartModal() {
@@ -2120,10 +2466,14 @@
     renderCryptos();
     renderInvestments();
     renderSuivi();
+    renderMemo();
+    updateMemoSortUI();
+    updateMemoFilterUI();
     updateSuiviFilterUI();
     const savedTab = localStorage.getItem('portfolioTab') || 'investments';
     if (savedTab === 'pnl') switchTab('pnl');
     else if (savedTab === 'suivi') switchTab('suivi');
+    else if (savedTab === 'memo') switchTab('memo');
     else prefetchIcons(appData.cryptos.map(c => c.symbol));
   } catch(e) {
     console.error('Init error:', e);
