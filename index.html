@@ -474,6 +474,12 @@
             <div class="summary-value" id="suiviTotalSuivi" style="color:var(--yellow)">—</div>
             <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--yellow);opacity:0.75;margin-top:2px" id="suiviSubSuivi"></div>
           </div>
+          <button class="btn-sm icon-only" onclick="openChartModal()" title="Répartition" style="align-self:stretch;padding:0 12px;border-color:rgba(255,214,0,0.4);color:#FFD600">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+              <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>
+              <path d="M22 12A10 10 0 0 0 12 2v10z"/>
+            </svg>
+          </button>
         </div>
         <!-- Row 2: filters + sort -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid var(--border);border-bottom:none">
@@ -695,6 +701,20 @@
         <button class="modal-btn cancel" onclick="closeSuiviModal()">ANNULER</button>
         <button class="modal-btn confirm" id="suiviBtnConfirm" onclick="saveSuiviEntry()">AJOUTER</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart Modal -->
+<div class="modal-overlay" id="chartModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <span class="modal-title">Répartition</span>
+      <button class="modal-close" onclick="closeChartModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <canvas id="chartCanvas" style="width:100%;border-radius:2px"></canvas>
+      <div id="chartLegend" style="margin-top:16px;display:flex;flex-direction:column;gap:6px"></div>
     </div>
   </div>
 </div>
@@ -1281,7 +1301,7 @@
     else showToast('Fichier JSON requis', 'error');
   });
 
-  ['cryptoModal','invModal','suiviModal','restoreModal','confirmModal'].forEach(id => {
+  ['cryptoModal','invModal','suiviModal','restoreModal','confirmModal','chartModal'].forEach(id => {
     document.getElementById(id).addEventListener('click', function(e) {
       if (e.target === this) this.classList.remove('open');
     });
@@ -1297,7 +1317,7 @@
   }
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { closeCryptoModal(); closeRestoreModal(); closeConfirmModal(); closeInvModal(); closeSuiviModal(); }
+    if (e.key === 'Escape') { closeCryptoModal(); closeRestoreModal(); closeConfirmModal(); closeInvModal(); closeSuiviModal(); closeChartModal(); }
     if (e.key === 'Enter' && document.getElementById('cryptoModal').classList.contains('open')) saveCrypto();
   });
 
@@ -1953,6 +1973,142 @@
 
       container.appendChild(block);
     });
+  }
+
+
+  // ── Chart ──
+  function openChartModal() {
+    // Collect active (non-USDC, non-changed) entries across filtered platforms
+    const platforms = [...new Set(appData.investments.map(i => i.platform))];
+    const filtered = activeSuiviCats.size > 0
+      ? platforms.filter(p => { const inv = appData.investments.find(i => i.platform === p); return inv && activeSuiviCats.has(inv.category || 'CEX'); })
+      : platforms;
+    const filtered2 = activeSuiviSubs.size > 0 ? filtered.filter(p => activeSuiviSubs.has(p)) : filtered;
+
+    const items = [];
+    filtered2.forEach(platform => {
+      (appData.suivi[platform] || []).forEach(e => {
+        if (e.sym !== 'USDC' && !e.changed && e.amount > 0) {
+          items.push({ label: e.sym, value: e.amount });
+        }
+      });
+    });
+
+    if (!items.length) { showToast('Aucune crypto active à afficher', 'error'); return; }
+
+    const total = items.reduce((s, i) => s + i.value, 0);
+    items.sort((a, b) => b.value - a.value);
+
+    document.getElementById('chartModal').classList.add('open');
+
+    setTimeout(() => {
+      const colors = ['#FF4081','#4da6ff','#FFD600','#00e676','#FF6D00','#00f5ff','#ff5722','#9c27b0','#03a9f4','#8bc34a','#ffc107','#f06292'];
+      const canvas = document.getElementById('chartCanvas');
+      // Use window width minus modal padding (2*24px) capped at 480px
+      const W = Math.min(window.innerWidth - 48, 480) || 320;
+      const H = Math.round(W * 0.6);
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      // Squarify treemap algorithm
+      function squarify(items, x, y, w, h) {
+        if (!items.length) return [];
+        const rects = [];
+        let remaining = [...items];
+        while (remaining.length) {
+          const isHoriz = w >= h;
+          const side = isHoriz ? h : w;
+          let row = [], rowSum = 0, best = Infinity;
+          for (let i = 0; i < remaining.length; i++) {
+            row.push(remaining[i]);
+            rowSum += remaining[i].value;
+            const rowW = rowSum / side;
+            let worst = 0;
+            row.forEach(r => {
+              const rh = r.value / rowSum * side;
+              worst = Math.max(worst, Math.max(rowW / rh, rh / rowW));
+            });
+            if (worst > best) { row.pop(); rowSum -= remaining[i].value; break; }
+            best = worst;
+          }
+          const rowW = rowSum / side;
+          let pos = isHoriz ? y : x;
+          row.forEach(r => {
+            const dim = r.value / rowSum * side;
+            if (isHoriz) rects.push({ item: r, x, y: pos, w: rowW, h: dim });
+            else         rects.push({ item: r, x: pos, y, w: dim, h: rowW });
+            pos += dim;
+          });
+          if (isHoriz) { x += rowW; w -= rowW; }
+          else         { y += rowW; h -= rowW; }
+          remaining = remaining.slice(row.length);
+        }
+        return rects;
+      }
+
+      const rects = squarify(items, 0, 0, W, H);
+      const SEP = 1.5; // separator between cells
+
+      rects.forEach((r, i) => {
+        const color = colors[i % colors.length];
+        const rx = r.x + SEP, ry = r.y + SEP, rw = r.w - SEP, rh = r.h - SEP;
+
+        // Fill cell
+        ctx.fillStyle = color;
+        ctx.fillRect(rx, ry, rw, rh);
+
+        if (rw < 28 || rh < 18) return;
+
+        // Text in top-left, white
+        const PAD = 7;
+        const pct = ((r.item.value / total) * 100).toFixed(1);
+        const amtStr = '$' + fmt(r.item.value);
+
+        ctx.fillStyle = 'rgba(255,255,255,0.95)';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+
+        // Amount (big)
+        const amtSize = Math.min(14, Math.max(9, rw / 6));
+        ctx.font = `600 ${amtSize}px 'DM Mono', monospace`;
+        if (ry + PAD + amtSize < ry + rh - 2) {
+          ctx.fillText(amtStr, rx + PAD, ry + PAD);
+        }
+
+        // Symbol (smaller, below)
+        if (rh > amtSize + 22) {
+          const symSize = Math.min(11, Math.max(8, rw / 8));
+          ctx.font = `bold ${symSize}px 'DM Mono', monospace`;
+          ctx.fillStyle = 'rgba(255,255,255,0.75)';
+          ctx.fillText(r.item.label + '  ' + pct + '%', rx + PAD, ry + PAD + amtSize + 3);
+        }
+      });
+
+      // Legend below
+      const legend = document.getElementById('chartLegend');
+      legend.innerHTML = '';
+      items.forEach((item, i) => {
+        const pct = ((item.value / total) * 100).toFixed(1);
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:8px';
+        row.innerHTML = `
+          <span style="width:8px;height:8px;border-radius:2px;background:${colors[i % colors.length]};flex-shrink:0"></span>
+          <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:700;flex:0 0 56px">${item.label}</span>
+          <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);flex:1">$${fmt(item.value)}</span>
+          <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600">${pct}%</span>
+        `;
+        legend.appendChild(row);
+      });
+    }, 50);
+  }
+
+  function closeChartModal() {
+    document.getElementById('chartModal').classList.remove('open');
   }
 
   // ── Init ──
