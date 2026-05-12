@@ -45,6 +45,8 @@
     }
     .tab + .tab { border-left: 1px solid var(--border); }
     .tab:hover { color: var(--text); background: rgba(255,255,255,0.02); }
+    .tab:active { opacity: 0.75; transform: scale(0.98); }
+    .btn-sm:active, .footer-btn:active, .card-btn:active, .cat-btn:active { opacity: 0.7; transform: scale(0.96); }
     .tab.active.investments { color: #4da6ff; border-bottom-color: #4da6ff; background: rgba(77,166,255,0.08); }
     .tab.active.pnl { color: #FF4081; border-bottom-color: #FF4081; background: rgba(255,64,129,0.08); }
     .tab.active.memo { color: #B2FF59; border-bottom-color: #B2FF59; background: rgba(178,255,89,0.08); }
@@ -853,7 +855,7 @@
 <div class="modal-overlay" id="chartModal">
   <div class="modal" style="max-width:480px">
     <div class="modal-header">
-      <span class="modal-title">Répartition</span>
+      <span class="modal-title">Répartition <span id="chartCount" style="font-weight:400;color:var(--text-dim)"></span></span>
       <button class="modal-close" onclick="closeChartModal()">×</button>
     </div>
     <div class="modal-body">
@@ -931,10 +933,16 @@
     document.querySelector(`.tab.${tab}`).classList.add('active');
     document.getElementById(`section-${tab}`).classList.add('active');
     localStorage.setItem('portfolioTab', tab);
+    const mainEl = document.querySelector('main'); if (mainEl) mainEl.scrollTop = 0;
     if (tab === 'pnl') { prefetchIcons(appData.cryptos.map(c => c.symbol)); refreshPrices(); }
     else if (tab === 'suivi') renderSuivi();
     else if (tab === 'memo') renderMemo();
-    else if (wsBinance) { wsBinance.close(); wsBinance = null; }
+    else {
+      wsActive = false;
+      if (wsRetryTimer) { clearTimeout(wsRetryTimer); wsRetryTimer = null; }
+      if (wsBinance) { wsBinance.onclose = null; wsBinance.close(); wsBinance = null; }
+      if (wsBybit)   { wsBybit.onclose   = null; wsBybit.close();   wsBybit   = null; }
+    }
   }
 
   let _rawSort = localStorage.getItem('portfolioSort') || null;
@@ -1022,10 +1030,19 @@
   function cgId(s) { return CGIDS[s.toUpperCase()] || s.toLowerCase(); }
 
   // ── Crypto icons ──
-  const iconCache = JSON.parse(localStorage.getItem('iconCache') || '{}');
+  // Icon cache with TTL — { url, ts } per symbol
+  let _rawIconCache = {};
+  try { _rawIconCache = JSON.parse(localStorage.getItem('iconCache') || '{}'); } catch {}
+  // Migrate old format (plain string → object)
+  Object.keys(_rawIconCache).forEach(k => {
+    if (typeof _rawIconCache[k] === 'string') _rawIconCache[k] = { url: _rawIconCache[k], ts: 0 };
+  });
+  const iconCache = _rawIconCache;
+  const ICON_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
 
   async function fetchIcon(symbol) {
-    if (iconCache[symbol]) return iconCache[symbol];
+    const cached = iconCache[symbol];
+    if (cached && cached.url && (Date.now() - (cached.ts || 0)) < ICON_TTL) return cached.url;
     const id = cgId(symbol);
     try {
       const res = await fetch(`https://api.coingecko.com/api/v3/coins/${id}?localization=false&tickers=false&market_data=false&community_data=false&developer_data=false`);
@@ -1033,7 +1050,7 @@
       const data = await res.json();
       const url = data.image && data.image.small;
       if (url) {
-        iconCache[symbol] = url;
+        iconCache[symbol] = { url, ts: Date.now() };
         try { localStorage.setItem('iconCache', JSON.stringify(iconCache)); } catch {}
       }
       return url || null;
@@ -1043,6 +1060,7 @@
   async function prefetchIcons(symbols) {
     await Promise.all(symbols.map(s => fetchIcon(s)));
     renderCryptos();
+    renderCryptos();
   }
 
   // ── WebSocket (Binance + Bybit fallback) ──
@@ -1051,17 +1069,40 @@
   // Tokens not on Binance spot → use Bybit
   const BYBIT_ONLY = new Set(['HYPE']);
 
+  let wsRetryDelay = 1000;
+  let wsRetryTimer = null;
+  let wsActive = false;
+  let wsCurrentSymbols = [];
+
   function startStreams(symbols) {
     if (!symbols.length) return;
+    wsCurrentSymbols = symbols;
+    wsActive = true;
+    wsRetryDelay = 1000;
+    _connectStreams(symbols);
+  }
+
+  function _connectStreams(symbols) {
     const binanceSyms = symbols.filter(s => !BYBIT_ONLY.has(s.toUpperCase()));
     const bybitSyms   = symbols.filter(s =>  BYBIT_ONLY.has(s.toUpperCase()));
 
     // ── Binance ──
-    if (wsBinance) { wsBinance.close(); wsBinance = null; }
+    if (wsBinance) { wsBinance.onclose = null; wsBinance.close(); wsBinance = null; }
     if (binanceSyms.length) {
       const streams = binanceSyms.map(s => `${s.toLowerCase()}usdt@miniTicker`).join('/');
       wsBinance = new WebSocket(`wss://stream.binance.com:9443/stream?streams=${streams}`);
-      wsBinance.onopen = () => document.getElementById('refreshBtn').classList.remove('spinning');
+      wsBinance.onopen = () => {
+        wsRetryDelay = 1000;
+        document.getElementById('refreshBtn').classList.remove('spinning');
+        setTimeout(() => {
+          appData.cryptos.forEach(c => {
+            if (!BYBIT_ONLY.has(c.symbol) && !liveData[c.symbol]) {
+              if (!liveData[c.symbol]) liveData[c.symbol] = { price: null, change24h: null, notFound: true };
+            }
+          });
+          renderCryptos();
+        }, 8000);
+      };
       wsBinance.onmessage = (event) => {
         try {
           const d = JSON.parse(event.data).data;
@@ -1074,16 +1115,23 @@
         } catch {}
       };
       wsBinance.onerror = () => {
-        showToast('Erreur Binance', 'error');
         document.getElementById('refreshBtn').classList.remove('spinning');
+      };
+      wsBinance.onclose = () => {
+        if (!wsActive) return;
+        wsRetryTimer = setTimeout(() => {
+          wsRetryDelay = Math.min(wsRetryDelay * 2, 30000);
+          _connectStreams(wsCurrentSymbols);
+        }, wsRetryDelay);
       };
     }
 
     // ── Bybit ──
-    if (wsBybit) { wsBybit.close(); wsBybit = null; }
+    if (wsBybit) { wsBybit.onclose = null; wsBybit.close(); wsBybit = null; }
     if (bybitSyms.length) {
       wsBybit = new WebSocket('wss://stream.bybit.com/v5/public/spot');
       wsBybit.onopen = () => {
+        wsRetryDelay = 1000;
         document.getElementById('refreshBtn').classList.remove('spinning');
         const args = bybitSyms.map(s => `tickers.${s.toUpperCase()}USDT`);
         wsBybit.send(JSON.stringify({ op: 'subscribe', args }));
@@ -1100,8 +1148,14 @@
         } catch {}
       };
       wsBybit.onerror = () => {
-        showToast('Erreur Bybit', 'error');
         document.getElementById('refreshBtn').classList.remove('spinning');
+      };
+      wsBybit.onclose = () => {
+        if (!wsActive) return;
+        wsRetryTimer = setTimeout(() => {
+          wsRetryDelay = Math.min(wsRetryDelay * 2, 30000);
+          _connectStreams(wsCurrentSymbols);
+        }, wsRetryDelay);
       };
     }
 
@@ -1172,7 +1226,8 @@
       const chgClass = change == null ? '' : change >= 0 ? 'up' : 'down';
       const pnlStr = pnl == null ? '—' : (pnl >= 0 ? '+' : '-') + '$' + fmt(Math.abs(pnl)) + (pnlPct != null ? ' (' + (pnlPct >= 0 ? '+' : '') + pnlPct.toFixed(1) + '%)' : '');
       const chgStr = change == null ? '—' : (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
-      const iconUrl = iconCache[crypto.symbol] || null;
+      const notFound = liveData[crypto.symbol]?.notFound;
+      const iconUrl = iconCache[crypto.symbol]?.url || null;
       const iconHtml = iconUrl
         ? `<img class="card-icon" src="${iconUrl}" alt="${crypto.symbol}" onerror="this.style.display='none'">`
         : `<span class="card-icon-placeholder">${crypto.symbol.slice(0,2)}</span>`;
@@ -1180,7 +1235,7 @@
         <div class="card-row1">
           ${iconHtml}
           <span class="card-symbol cat-${(crypto.category||'CEX').toLowerCase()}">${crypto.symbol}</span>
-          <span class="card-pair">/USDC</span>
+          <span class="card-pair">/USDC</span>${notFound ? '<span style="font-family:\'DM Mono\',monospace;font-size:8px;color:var(--orange);margin-left:4px" title="Symbole non trouvé sur Binance">?</span>' : ''}
           <span class="card-buy">$${fmt(crypto.buyPrice)}</span>
           <span class="card-price">${price != null ? '$' + fmt(price) : '<span class="loading-dot"></span>'}</span>
           <div class="card-actions">
@@ -1244,7 +1299,13 @@
     const isFiltered = activeFilters.size > 0;
 
     const countEl = document.getElementById('cryptoCount');
-    if (countEl) countEl.textContent = appData.cryptos.length;
+    if (countEl) {
+      if (activeFilters.size > 0) {
+        countEl.textContent = sorted.length + '/' + appData.cryptos.length;
+      } else {
+        countEl.textContent = appData.cryptos.length;
+      }
+    }
     const bar = document.getElementById('summaryBar');
     bar.style.display = appData.cryptos.length ? 'grid' : 'none';
     bar.style.flex = '1';
@@ -1378,7 +1439,20 @@
   }
 
   // ── Persist ──
-  function saveData() { localStorage.setItem('portfolioData', JSON.stringify(appData)); }
+  function saveData() {
+    localStorage.setItem('portfolioData', JSON.stringify(appData));
+    // Clean iconCache — keep only symbols used in the app
+    const usedSymbols = new Set([
+      ...appData.cryptos.map(c => c.symbol),
+      ...Object.values(appData.suivi).flat().map(e => e.sym),
+      ...(appData.memo || []).map(m => m.sym)
+    ]);
+    let dirty = false;
+    Object.keys(iconCache).forEach(k => {
+      if (!usedSymbols.has(k)) { delete iconCache[k]; dirty = true; }
+    });
+    if (dirty) try { localStorage.setItem('iconCache', JSON.stringify(iconCache)); } catch {}
+  }
 
   // ── Backup ──
   async function doSave() {
@@ -1427,6 +1501,9 @@
         appData = JSON.parse(e.target.result);
         if (!appData.cryptos) appData.cryptos = [];
         if (!appData.investments) appData.investments = [];
+        if (!appData.cryptos) appData.cryptos = [];
+        if (!appData.investments) appData.investments = [];
+        if (!appData.suivi) appData.suivi = {};
         if (!appData.memo) appData.memo = [];
         saveData(); renderCryptos(); renderInvestments(); renderSuivi(); renderMemo(); closeRestoreModal();
         showToast('Données restaurées', 'success');
@@ -1630,7 +1707,12 @@
 
     const entry = { date, eur, usd, category, platform };
     if (editingInvIdx >= 0) {
+      const oldPlatform = appData.investments[editingInvIdx].platform;
       appData.investments[editingInvIdx] = entry;
+      if (oldPlatform !== platform && appData.suivi[oldPlatform]) {
+        appData.suivi[platform] = appData.suivi[oldPlatform];
+        delete appData.suivi[oldPlatform];
+      }
     } else {
       appData.investments.push(entry);
     }
@@ -1973,10 +2055,12 @@
     });
 
     sortedMemo.forEach(({ m, i: mi }) => {
-      const iconUrl = iconCache[m.sym] || null;
+      const iconUrl = iconCache[m.sym]?.url || null;
       const iconHtml = iconUrl
         ? `<img class="card-icon" src="${iconUrl}" alt="${m.sym}" onerror="this.style.display='none'">`
         : `<span class="card-icon-placeholder">${m.sym.slice(0,2)}</span>`;
+      const memoLive = liveData[m.sym];
+      const memoPriceStr = memoLive && memoLive.price ? '$' + fmt(memoLive.price) : '';
       const card = document.createElement('div');
       card.className = 'memo-card';
       let predsHtml = '';
@@ -2019,6 +2103,7 @@
         <div class="memo-header">
           ${iconHtml}
           <span class="memo-sym">${m.sym}</span>
+          ${memoPriceStr ? `<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--green);margin-left:auto;margin-right:8px">${memoPriceStr}</span>` : ''}
           <div class="card-actions">
             <button class="card-btn edit" onclick="openMemoModal(${mi})">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -2297,7 +2382,7 @@
 
     // Prefetch icons for all suivi entries
     const suiviSymbols = [...new Set(Object.values(appData.suivi).flat().map(e => e.sym))];
-    suiviSymbols.forEach(s => { if (!iconCache[s]) fetchIcon(s).then(() => {}); });
+    suiviSymbols.forEach(s => { if (!iconCache[s]?.url) fetchIcon(s).then(() => {}); });
 
     filteredPlatforms.forEach(platform => {
       // Total invested $ for this platform
@@ -2367,7 +2452,7 @@
         const target = entry.amount * (1 + (entry.objectif || 5) / 100);
         const row = document.createElement('div');
         row.className = 'suivi-row';
-        const sIconUrl = iconCache[entry.sym] || null;
+        const sIconUrl = iconCache[entry.sym]?.url || null;
         const sIconHtml = sIconUrl
           ? `<img class="card-icon" src="${sIconUrl}" alt="${entry.sym}" onerror="this.style.display='none'">`
           : `<span class="card-icon-placeholder">${entry.sym.slice(0,2)}</span>`;
@@ -2425,6 +2510,7 @@
     items.sort((a, b) => b.value - a.value);
 
     document.getElementById('chartModal').classList.add('open');
+    const countEl = document.getElementById('chartCount'); if (countEl) countEl.textContent = '(' + items.length + ')';
 
     const colors = ['#FF4081','#4da6ff','#FFD600','#00e676','#FF6D00','#00f5ff','#ff5722','#9c27b0','#03a9f4','#8bc34a','#ffc107','#f06292'];
     const bars = document.getElementById('chartBars');
@@ -2436,7 +2522,7 @@
       const color = colors[i % colors.length];
       const row = document.createElement('div');
       row.style.cssText = 'display:flex;align-items:center;gap:10px';
-      const cIconUrl = iconCache[item.label] || null;
+      const cIconUrl = iconCache[item.label]?.url || null;
       const cIconHtml = cIconUrl
         ? `<img src="${cIconUrl}" alt="${item.label}" style="width:14px;height:14px;border-radius:50%;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'">`
         : `<span style="width:14px;height:14px;border-radius:50%;background:var(--border);flex-shrink:0;display:inline-block"></span>`;
@@ -2455,6 +2541,18 @@
 
   function closeChartModal() {
     document.getElementById('chartModal').classList.remove('open');
+  }
+
+
+  // ── iOS keyboard / visualViewport ──
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      const vh = window.visualViewport.height;
+      document.querySelectorAll('.modal-overlay.open .modal').forEach(modal => {
+        modal.style.maxHeight = (vh * 0.9) + 'px';
+        modal.style.overflowY = 'auto';
+      });
+    });
   }
 
   // ── Init ──
