@@ -872,16 +872,33 @@
       <button class="modal-close" onclick="closeRestoreModal()">×</button>
     </div>
     <div class="modal-body">
-      <p style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);letter-spacing:.08em;line-height:1.7;margin-bottom:18px;">
-        Sélectionnez un fichier JSON pour restaurer vos données.
-      </p>
-      <div class="file-drop" id="fileDrop" onclick="document.getElementById('fileInput').click()">
-        <div class="file-drop-icon">⬆</div>
-        <div class="file-drop-label">Déposer un fichier ou <span>parcourir</span></div>
-        <div class="file-selected" id="fileSelectedLabel"></div>
+      <!-- Mode tabs -->
+      <div style="display:flex;gap:0;margin-bottom:16px;border:1px solid var(--border);border-radius:2px;overflow:hidden">
+        <button class="modal-btn" id="restoreTabFile" onclick="setRestoreMode('file')"
+          style="flex:1;border:none;border-radius:0;border-right:1px solid var(--border);background:rgba(255,255,255,0.06);color:#fff">
+          FICHIER
+        </button>
+        <button class="modal-btn" id="restoreTabPaste" onclick="setRestoreMode('paste')"
+          style="flex:1;border:none;border-radius:0;background:transparent;color:var(--text-dim)">
+          COLLER
+        </button>
       </div>
-      <input type="file" id="fileInput" accept=".json" onchange="onFileSelect(event)">
-      <div class="modal-actions">
+      <!-- File mode -->
+      <div id="restoreModeFile">
+        <div class="file-drop" id="fileDrop" onclick="document.getElementById('fileInput').click()">
+          <div class="file-drop-icon">⬆</div>
+          <div class="file-drop-label">Déposer un fichier ou <span>parcourir</span></div>
+          <div class="file-selected" id="fileSelectedLabel"></div>
+        </div>
+        <input type="file" id="fileInput" accept=".json" onchange="onFileSelect(event)">
+      </div>
+      <!-- Paste mode -->
+      <div id="restoreModePaste" style="display:none">
+        <textarea id="pasteInput" class="form-input" rows="6"
+          placeholder='Colle ici le contenu JSON de ta sauvegarde…'
+          style="resize:none;line-height:1.5;font-size:11px"></textarea>
+      </div>
+      <div class="modal-actions" style="margin-top:16px">
         <button class="modal-btn cancel" onclick="closeRestoreModal()">ANNULER</button>
         <button class="modal-btn confirm" onclick="doRestore()" style="background:#ffffff;color:#000;border-color:#ffffff">RESTAURER</button>
       </div>
@@ -1482,10 +1499,25 @@
   }
 
   // ── Restore ──
+  let restoreMode = 'file';
+
+  function setRestoreMode(mode) {
+    restoreMode = mode;
+    document.getElementById('restoreModeFile').style.display  = mode === 'file'  ? 'block' : 'none';
+    document.getElementById('restoreModePaste').style.display = mode === 'paste' ? 'block' : 'none';
+    const tabFile  = document.getElementById('restoreTabFile');
+    const tabPaste = document.getElementById('restoreTabPaste');
+    if (tabFile)  { tabFile.style.background  = mode === 'file'  ? 'rgba(255,255,255,0.06)' : 'transparent'; tabFile.style.color  = mode === 'file'  ? '#fff' : 'var(--text-dim)'; }
+    if (tabPaste) { tabPaste.style.background = mode === 'paste' ? 'rgba(255,255,255,0.06)' : 'transparent'; tabPaste.style.color = mode === 'paste' ? '#fff' : 'var(--text-dim)'; }
+  }
+
   function openRestoreModal() {
     selectedFile = null;
+    restoreMode = 'file';
     document.getElementById('fileSelectedLabel').textContent = '';
     document.getElementById('fileInput').value = '';
+    document.getElementById('pasteInput').value = '';
+    setRestoreMode('file');
     document.getElementById('restoreModal').classList.add('open');
   }
   function closeRestoreModal() { document.getElementById('restoreModal').classList.remove('open'); }
@@ -1494,13 +1526,25 @@
     if (selectedFile) document.getElementById('fileSelectedLabel').textContent = selectedFile.name;
   }
   function doRestore() {
+    if (restoreMode === 'paste') {
+      const text = document.getElementById('pasteInput').value.trim();
+      if (!text) { showToast('Aucun contenu collé', 'error'); return; }
+      try {
+        appData = JSON.parse(text);
+        if (!appData.cryptos) appData.cryptos = [];
+        if (!appData.investments) appData.investments = [];
+        if (!appData.suivi) appData.suivi = {};
+        if (!appData.memo) appData.memo = [];
+        saveData(); renderCryptos(); renderInvestments(); renderSuivi(); renderMemo(); closeRestoreModal();
+        showToast('Données restaurées', 'success');
+      } catch { showToast('JSON invalide', 'error'); }
+      return;
+    }
     if (!selectedFile) { showToast('Aucun fichier sélectionné', 'error'); return; }
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
         appData = JSON.parse(e.target.result);
-        if (!appData.cryptos) appData.cryptos = [];
-        if (!appData.investments) appData.investments = [];
         if (!appData.cryptos) appData.cryptos = [];
         if (!appData.investments) appData.investments = [];
         if (!appData.suivi) appData.suivi = {};
