@@ -1381,12 +1381,12 @@
     // 24h
     if (globalT.has24h) {
       const pct = globalT.base24 > 0 ? (globalT.val24 / globalT.base24) * 100 : 0;
-      sum24hEl.textContent = (globalT.val24 >= 0 ? '+' : '') + '$ ' + fmt(Math.abs(globalT.val24)) + ' (' + (pct >= 0 ? '+' : '') + pct.toFixed(2) + ' %)';
+      sum24hEl.textContent = '$ ' + fmt(Math.abs(globalT.val24)) + ' (' + (pct >= 0 ? '+' : '') + pct.toFixed(2) + ' %)';
       sum24hEl.className = 'summary-value ' + (globalT.val24 >= 0 ? 'up' : 'down');
       if (sub24hEl) {
         if (isFiltered && filteredT.has24h && filteredT.val24 !== globalT.val24) {
           const fpct = filteredT.base24 > 0 ? (filteredT.val24 / filteredT.base24) * 100 : 0;
-          sub24hEl.textContent = 'dont ' + (filteredT.val24 >= 0 ? '+' : '') + '$ ' + fmt(Math.abs(filteredT.val24)) + ' (' + (fpct >= 0 ? '+' : '') + fpct.toFixed(2) + ' %)';
+          sub24hEl.textContent = 'dont $ ' + fmt(Math.abs(filteredT.val24)) + ' (' + (fpct >= 0 ? '+' : '') + fpct.toFixed(2) + ' %)';
           sub24hEl.style.color = filteredT.val24 >= 0 ? 'var(--green)' : 'var(--red)';
           sub24hEl.style.opacity = '0.75';
         } else { sub24hEl.textContent = ''; }
@@ -2513,8 +2513,8 @@
       header.innerHTML = `
         <span class="suivi-platform ${catClass}">${platform}</span>
         <div class="suivi-stats">
-          <span>investi&nbsp;<span class="suivi-stat-val">${totalInvested > 0 ? '$ ' + fmt(totalInvested) : '—'}</span></span>
-          <span>suivi&nbsp;<span class="suivi-stat-val ${pct == null ? '' : pct >= 100 ? 'up' : ''}">${fmt(totalEntries) !== '—' ? '$ ' + fmt(totalEntries) : '—'}</span></span>
+          <span>inv.&nbsp;<span class="suivi-stat-val">${totalInvested > 0 ? '$ ' + fmt(totalInvested) : '—'}</span></span>
+          <span>sui.&nbsp;<span class="suivi-stat-val ${pct == null ? '' : pct >= 100 ? 'up' : 'down'}">${fmt(totalEntries) !== '—' ? '$ ' + fmt(totalEntries) : '—'}</span></span>
           ${pct != null ? `<span class="suivi-stat-val ${pct >= 100 ? 'up' : 'down'}">${pct.toFixed(1)} %</span>` : ''}
         </div>
         <button class="btn-sm icon-only accent" onclick="openSuiviModal('${platform}')" title="Ajouter">
@@ -2607,12 +2607,12 @@
         : `<span style="width:14px;height:14px;border-radius:50%;background:var(--border);flex-shrink:0;display:inline-block"></span>`;
       row.innerHTML = `
         ${cIconHtml}
-        <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:700;flex:0 0 36px;color:#fff">${item.label}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:700;width:52px;flex-shrink:0;color:#fff">${item.label}</span>
         <div style="flex:1;background:var(--border);border-radius:2px;height:10px;overflow:hidden">
           <div style="width:${(item.value/maxVal*100).toFixed(1)}%;height:100%;background:${color};border-radius:2px;min-width:3px"></div>
         </div>
-        <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);white-space:nowrap;text-align:right;min-width:52px">$ ${fmt(item.value)}</span>
-        <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;white-space:nowrap;text-align:right;min-width:36px;color:${color}">${pctStr} %</span>
+        <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);white-space:nowrap;text-align:right;width:70px;flex-shrink:0">$ ${fmt(item.value)}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;white-space:nowrap;text-align:right;width:44px;flex-shrink:0;color:${color}">${pctStr} %</span>
       `;
       bars.appendChild(row);
     });
