@@ -11,7 +11,7 @@
 
     :root {
       --bg: #000000;
-      --surface: #0d0d0d;
+      --surface: #111111;
       --surface2: #111111;
       --border: #1e1e1e;
       --border-bright: #2e2e2e;
@@ -19,7 +19,7 @@
       --text-dim: #777;
       --text-muted: #4a4a4a;
       --accent: #c8ff00;
-      --accent-dim: rgba(200, 255, 0, 0.08);
+      --accent-dim: rgba(255, 255, 255, 0.04);
       --green: #089981;
       --yellow: #B588B5;
       --orange: #ff8c00;
@@ -116,18 +116,18 @@
     .inv-platform.cat-dex { color: #ff8c00; border-color: rgba(255,140,0,0.3); }
     .inv-platform.cat-wallet { color: #4da6ff; border-color: rgba(77,166,255,0.3); }
     .inv-row2 { display: flex; align-items: center; gap: 10px; }
-    .inv-amount-eur { font-family: 'DM Mono', monospace; font-size: 12px; color: #6B9FD4; }
+    .inv-amount-eur { font-family: 'DM Mono', monospace; font-size: 12px; color: #003399; }
     .inv-amount-usd { font-family: 'DM Mono', monospace; font-size: 12px; color: #089981; }
 
     /* ── Investments accent overrides ── */
     #section-investments .btn-sm.sort-active,
     #section-investments .btn-sm.sort-active:hover {
-      border-color: rgba(107,159,212,0.4) !important;
-      color: #6B9FD4 !important;
+      border-color: rgba(0,51,153,0.4) !important;
+      color: #003399 !important;
     }
     #invFilterAll.sort-active {
-      border-color: rgba(107,159,212,0.4) !important;
-      color: #6B9FD4 !important;
+      border-color: rgba(0,51,153,0.4) !important;
+      color: #003399 !important;
     }
     #section-pnl .btn-sm.sort-active,
     #section-pnl .btn-sm.sort-active:hover {
@@ -163,7 +163,7 @@
       border-radius: 2px; padding: 6px 10px;
     }
     .summary-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1px; }
-    .summary-sub-eur { font-family: 'DM Mono', monospace; font-size: 9px; color: #6B9FD4; margin-top: 2px; opacity: 0.75; }
+    .summary-sub-eur { font-family: 'DM Mono', monospace; font-size: 9px; color: #003399; margin-top: 2px; opacity: 0.75; }
     .summary-sub-usd { font-family: 'DM Mono', monospace; font-size: 9px; color: #089981; margin-top: 2px; opacity: 0.75; }
     .summary-value { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; }
     .summary-value.up { color: var(--green); }
@@ -327,7 +327,7 @@
     .modal-btn.cancel:hover { border-color: var(--border-bright); color: var(--text); }
     .modal-btn.confirm { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
     .modal-btn.confirm:hover { background: #d4ff1a; }
-    #invModal .modal-btn.confirm { background: #6B9FD4; color: #000; border-color: #6B9FD4; }
+    #invModal .modal-btn.confirm { background: #003399; color: #fff; border-color: #003399; }
     #invModal .modal-btn.confirm:hover { background: #8dbde8; }
     .modal-btn.danger { background: transparent; color: var(--red); border-color: rgba(242,54,69,0.3); }
     .modal-btn.danger:hover { border-color: var(--red); background: rgba(242,54,69,0.06); }
@@ -473,17 +473,17 @@
       <div style="position:sticky;top:0;background:#000;z-index:10;padding:10px 0 0">
         <!-- Row 1: summary blocks + add button -->
         <div style="display:flex;gap:8px;align-items:stretch;margin-bottom:6px">
-          <div class="inv-summary-cell" style="flex:1;border-color:rgba(107,159,212,0.5)">
+          <div class="inv-summary-cell" style="flex:1;border-color:rgba(0,51,153,0.5)">
             <div class="summary-label">INVESTIS €</div>
-            <div class="summary-value" id="totalEur" style="color:#6B9FD4">—</div>
+            <div class="summary-value" id="totalEur" style="color:#003399">—</div>
             <div class="summary-sub-eur" id="subEur"></div>
           </div>
-          <div class="inv-summary-cell" style="flex:1;border-color:rgba(0,230,118,0.3)">
+          <div class="inv-summary-cell" style="flex:1;border-color:rgba(8,153,129,0.4)">
             <div class="summary-label">INVESTIS $</div>
             <div class="summary-value" id="totalUsd" style="color:#089981">—</div>
             <div class="summary-sub-usd" id="subUsd"></div>
           </div>
-          <button class="btn-sm icon-only" onclick="openInvModal()" title="Ajouter" style="align-self:stretch;padding:0 12px;border-color:rgba(107,159,212,0.4);color:#6B9FD4">
+          <button class="btn-sm icon-only" onclick="openInvModal()" title="Ajouter" style="align-self:stretch;padding:0 12px;border-color:rgba(0,51,153,0.5);color:#003399">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
@@ -512,7 +512,7 @@
       <div style="position:sticky;top:0;background:#000;z-index:10;padding:10px 0 0">
         <!-- Row 1: summary blocks -->
         <div style="display:flex;gap:8px;align-items:stretch;margin-bottom:6px">
-          <div class="inv-summary-cell" style="flex:1;border-color:rgba(0,230,118,0.3)">
+          <div class="inv-summary-cell" style="flex:1;border-color:rgba(8,153,129,0.4)">
             <div class="summary-label">INVESTI $</div>
             <div class="summary-value" id="suiviTotalInv" style="color:var(--green)">—</div>
             <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--green);opacity:0.75;margin-top:2px" id="suiviSubInv"></div>
@@ -1709,7 +1709,7 @@
       const isAll = activeInvCats.size === 0;
       allBtn.classList.toggle('sort-active', isAll);
       allBtn.style.borderColor = isAll ? 'rgba(107,159,212,0.4)' : '';
-      allBtn.style.color = isAll ? '#6B9FD4' : '';
+      allBtn.style.color = isAll ? '#003399' : '';
     }
 
     // Category buttons
@@ -2405,7 +2405,7 @@
       const isAll = activeSuiviCats.size === 0;
       allBtn.classList.toggle('sort-active', isAll);
       allBtn.style.borderColor = isAll ? 'rgba(107,159,212,0.4)' : '';
-      allBtn.style.color = isAll ? '#6B9FD4' : '';
+      allBtn.style.color = isAll ? '#003399' : '';
     }
     ['CEX','DEX','WALLET'].forEach(c => {
       const btn = document.getElementById('suiviFilter' + c);
