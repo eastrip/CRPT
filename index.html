@@ -49,7 +49,7 @@
     .btn-sm:active, .footer-btn:active, .card-btn:active, .cat-btn:active { opacity: 0.7; transform: scale(0.96); }
     .tab.active.investments { color: #4da6ff; border-bottom-color: #4da6ff; background: rgba(77,166,255,0.08); }
     .tab.active.pnl { color: #FF4081; border-bottom-color: #FF4081; background: rgba(255,64,129,0.08); }
-    .tab.active.memo { color: #7fc6a4; border-bottom-color: #7fc6a4; background: rgba(127,198,164,0.08); }
+    .tab.active.memo { color: #3ab795; border-bottom-color: #3ab795; background: rgba(58,183,149,0.08); }
     .tab.active.suivi { color: #FFD600; border-bottom-color: #FFD600; background: rgba(255,214,0,0.08); }
 
     /* ── Main ── */
@@ -388,11 +388,11 @@
 
 
     /* ── Memo ── */
-    #section-memo .btn-sm.sort-active { border-color: rgba(127,198,164,0.4) !important; color: #7fc6a4 !important; }
-    #memoModal .modal-btn.confirm { background: #7fc6a4; color: #000; border-color: #7fc6a4; }
-    #memoModal .modal-btn.confirm:hover { background: #9fd6ba; }
-    #predModal .modal-btn.confirm { background: #7fc6a4; color: #000; border-color: #7fc6a4; }
-    #predModal .modal-btn.confirm:hover { background: #9fd6ba; }
+    #section-memo .btn-sm.sort-active { border-color: rgba(58,183,149,0.4) !important; color: #3ab795 !important; }
+    #memoModal .modal-btn.confirm { background: #3ab795; color: #000; border-color: #3ab795; }
+    #memoModal .modal-btn.confirm:hover { background: #5ecbaa; }
+    #predModal .modal-btn.confirm { background: #3ab795; color: #000; border-color: #3ab795; }
+    #predModal .modal-btn.confirm:hover { background: #5ecbaa; }
     .memo-card {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 2px; margin-bottom: 8px; overflow: hidden;
@@ -417,14 +417,14 @@
     .pred-row-main { display: flex; align-items: center; gap: 8px; }
     .pred-row:first-of-type { border-top: none; }
     .pred-date { color: var(--text-dim); flex: 0 0 70px; }
-    .pred-price { color: #7fc6a4; font-weight: 600; flex: 1; }
+    .pred-price { color: #3ab795; font-weight: 600; flex: 1; }
     .pred-note { color: var(--text-dim); font-size: 9px; flex: 2; font-style: italic; }
     .memo-add-pred {
       display: flex; align-items: center; justify-content: center;
       padding: 6px; border-top: 1px solid var(--border);
       cursor: pointer; transition: background 0.15s;
     }
-    .memo-add-pred:hover { background: rgba(127,198,164,0.04); }
+    .memo-add-pred:hover { background: rgba(58,183,149,0.04); }
 
     #pnlProgressWrap { margin: 0 0 8px; }
 
@@ -580,7 +580,7 @@
               Date
             </button>
           </div>
-          <button class="btn-sm icon-only" onclick="openMemoModal()" title="Ajouter une crypto" style="border-color:rgba(127,198,164,0.4);color:#7fc6a4">
+          <button class="btn-sm icon-only" onclick="openMemoModal()" title="Ajouter une crypto" style="border-color:rgba(58,183,149,0.4);color:#3ab795">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
@@ -596,7 +596,7 @@
       </div>
       <!-- Loading progress bar -->
       <div id="memoProgressWrap" style="display:none;height:1.5px;background:var(--border);margin-bottom:6px;overflow:hidden">
-        <div id="memoProgress" style="height:100%;background:#7fc6a4;width:0%;transition:width 0.4s ease"></div>
+        <div id="memoProgress" style="height:100%;background:#3ab795;width:0%;transition:width 0.4s ease"></div>
       </div>
       <div id="memoContainer">
         <div class="empty-state">
@@ -2004,8 +2004,8 @@
     if (allBtn) {
       const isAll = !memoHorizonFilter;
       allBtn.classList.toggle('sort-active', isAll);
-      allBtn.style.borderColor = isAll ? 'rgba(127,198,164,0.4)' : '';
-      allBtn.style.color       = isAll ? '#7fc6a4' : '';
+      allBtn.style.borderColor = isAll ? 'rgba(58,183,149,0.4)' : '';
+      allBtn.style.color       = isAll ? '#3ab795' : '';
     }
 
     // Horizon buttons — same pattern as inv/suivi filters
@@ -2234,7 +2234,7 @@
         ${m.note ? `<div class="memo-note-text">${m.note}</div>` : ''}
         ${predsHtml}
         <div class="memo-add-pred" onclick="openPredModal(${mi})">
-          <span style="font-family:'DM Mono',monospace;font-size:10px;color:#7fc6a4;letter-spacing:0.1em">+ PRÉDICTION</span>
+          <span style="font-family:'DM Mono',monospace;font-size:10px;color:#3ab795;letter-spacing:0.1em">+ PRÉDICTION</span>
         </div>
       `;
       container.appendChild(card);
