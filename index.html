@@ -965,7 +965,16 @@
       if (wrap && appData.cryptos.length) { wrap.style.display = 'block'; if (bar) bar.style.width = '0 %'; }
     }
     else if (tab === 'suivi') renderSuivi();
-    else if (tab === 'memo') renderMemo();
+    else if (tab === 'memo') {
+      renderMemo();
+      // Load live prices for memo symbols if not already streaming
+      const memoSymbols = (appData.memo || []).map(m => m.sym);
+      const missing = memoSymbols.filter(s => !liveData[s] || liveData[s].notFound);
+      if (missing.length) {
+        const allSymbols = [...new Set([...appData.cryptos.map(c => c.symbol), ...memoSymbols])];
+        startStreams(allSymbols);
+      }
+    }
     else {
       wsActive = false;
       if (wsRetryTimer) { clearTimeout(wsRetryTimer); wsRetryTimer = null; }
@@ -1146,6 +1155,7 @@
           liveData[sym] = { price, change24h: open > 0 ? ((price - open) / open) * 100 : 0 };
           updatePnlProgress();
           renderCryptos();
+          if (document.querySelector('.tab.memo.active')) renderMemo();
         } catch {}
       };
       wsBinance.onerror = () => {
@@ -1180,6 +1190,7 @@
           liveData[sym] = { price, change24h };
           updatePnlProgress();
           renderCryptos();
+          if (document.querySelector('.tab.memo.active')) renderMemo();
         } catch {}
       };
       wsBybit.onerror = () => {
