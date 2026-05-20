@@ -976,8 +976,9 @@
       const mw = document.getElementById('memoProgressWrap');
       const mb = document.getElementById('memoProgress');
       if (mw && memoSymbols.length) { mw.style.display = 'block'; if (mb) mb.style.width = '0%'; }
-      const missing = memoSymbols.filter(s => !liveData[s] || liveData[s].notFound);
-      if (missing.length) {
+      // Always start streams for memo symbols
+      if (memoSymbols.length) {
+        wsActive = true;
         const allSymbols = [...new Set([...appData.cryptos.map(c => c.symbol), ...memoSymbols])];
         startStreams(allSymbols);
       }
