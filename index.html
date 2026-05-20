@@ -21,7 +21,7 @@
       --accent: #c8ff00;
       --accent-dim: rgba(200, 255, 0, 0.08);
       --green: #00e676;
-      --yellow: #8B6B8B;
+      --yellow: #B588B5;
       --orange: #ff8c00;
       --red: #ff4444;
       --red-dark: #991a1a;
@@ -47,10 +47,10 @@
     .tab:hover { color: var(--text); background: rgba(255,255,255,0.02); }
     .tab:active { opacity: 0.75; transform: scale(0.98); }
     .btn-sm:active, .footer-btn:active, .card-btn:active, .cat-btn:active { opacity: 0.7; transform: scale(0.96); }
-    .tab.active.investments { color: #5B7BA8; border-bottom-color: #5B7BA8; background: rgba(91,123,168,0.08); }
-    .tab.active.pnl { color: #8A7355; border-bottom-color: #8A7355; background: rgba(138,115,85,0.08); }
-    .tab.active.memo { color: #5E8A6E; border-bottom-color: #5E8A6E; background: rgba(94,138,110,0.08); }
-    .tab.active.suivi { color: #8B6B8B; border-bottom-color: #8B6B8B; background: rgba(139,107,139,0.08); }
+    .tab.active.investments { color: #6B9FD4; border-bottom-color: #6B9FD4; background: rgba(107,159,212,0.08); }
+    .tab.active.pnl { color: #B5956A; border-bottom-color: #B5956A; background: rgba(181,149,106,0.08); }
+    .tab.active.memo { color: #6DB88E; border-bottom-color: #6DB88E; background: rgba(109,184,142,0.08); }
+    .tab.active.suivi { color: #B588B5; border-bottom-color: #B588B5; background: rgba(181,136,181,0.08); }
 
     /* ── Main ── */
     main { flex: 1; overflow-y: auto; padding: 0 8px 8px; }
@@ -116,42 +116,42 @@
     .inv-platform.cat-dex { color: #ff8c00; border-color: rgba(255,140,0,0.3); }
     .inv-platform.cat-wallet { color: #4da6ff; border-color: rgba(77,166,255,0.3); }
     .inv-row2 { display: flex; align-items: center; gap: 10px; }
-    .inv-amount-eur { font-family: 'DM Mono', monospace; font-size: 12px; color: #5B7BA8; }
+    .inv-amount-eur { font-family: 'DM Mono', monospace; font-size: 12px; color: #6B9FD4; }
     .inv-amount-usd { font-family: 'DM Mono', monospace; font-size: 12px; color: #00e676; }
 
     /* ── Investments accent overrides ── */
     #section-investments .btn-sm.sort-active,
     #section-investments .btn-sm.sort-active:hover {
-      border-color: rgba(91,123,168,0.4) !important;
-      color: #5B7BA8 !important;
+      border-color: rgba(107,159,212,0.4) !important;
+      color: #6B9FD4 !important;
     }
     #invFilterAll.sort-active {
-      border-color: rgba(91,123,168,0.4) !important;
-      color: #5B7BA8 !important;
+      border-color: rgba(107,159,212,0.4) !important;
+      color: #6B9FD4 !important;
     }
     #section-pnl .btn-sm.sort-active,
     #section-pnl .btn-sm.sort-active:hover {
-      border-color: rgba(138,115,85,0.4) !important;
-      color: #8A7355 !important;
+      border-color: rgba(181,149,106,0.4) !important;
+      color: #B5956A !important;
     }
     #filterAll.sort-active {
-      border-color: rgba(138,115,85,0.4) !important;
-      color: #8A7355 !important;
+      border-color: rgba(181,149,106,0.4) !important;
+      color: #B5956A !important;
     }
-    #cryptoModal .modal-btn.confirm { background: #8A7355; color: #000; border-color: #8A7355; }
-    #cryptoModal .modal-btn.confirm:hover { background: #a09070; }
+    #cryptoModal .modal-btn.confirm { background: #B5956A; color: #000; border-color: #B5956A; }
+    #cryptoModal .modal-btn.confirm:hover { background: #cab880; }
 
     #section-suivi .btn-sm.sort-active,
     #section-suivi .btn-sm.sort-active:hover {
-      border-color: rgba(139,107,139,0.4) !important;
-      color: #8B6B8B !important;
+      border-color: rgba(181,136,181,0.4) !important;
+      color: #B588B5 !important;
     }
     #suiviFilterAll.sort-active {
-      border-color: rgba(139,107,139,0.4) !important;
-      color: #8B6B8B !important;
+      border-color: rgba(181,136,181,0.4) !important;
+      color: #B588B5 !important;
     }
-    #suiviModal .modal-btn.confirm { background: #8B6B8B; color: #000; border-color: #8B6B8B; }
-    #suiviModal .modal-btn.confirm:hover { background: #a08aa0; }
+    #suiviModal .modal-btn.confirm { background: #B588B5; color: #000; border-color: #B588B5; }
+    #suiviModal .modal-btn.confirm:hover { background: #c8a0c8; }
 
     /* ── Summary bar ── */
     .summary-bar {
@@ -163,7 +163,7 @@
       border-radius: 2px; padding: 6px 10px;
     }
     .summary-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1px; }
-    .summary-sub-eur { font-family: 'DM Mono', monospace; font-size: 9px; color: #5B7BA8; margin-top: 2px; opacity: 0.75; }
+    .summary-sub-eur { font-family: 'DM Mono', monospace; font-size: 9px; color: #6B9FD4; margin-top: 2px; opacity: 0.75; }
     .summary-sub-usd { font-family: 'DM Mono', monospace; font-size: 9px; color: #00e676; margin-top: 2px; opacity: 0.75; }
     .summary-value { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; }
     .summary-value.up { color: var(--green); }
@@ -232,7 +232,7 @@
     }
     .stat-val.up { color: var(--green); }
     .stat-val.down { color: var(--red); }
-    .stat-val.pnl-yellow { color: #8B6B8B; }
+    .stat-val.pnl-yellow { color: #FFD600; }
     .stat-val.pnl-orange { color: var(--orange); }
     .stat-val.pnl-red { color: var(--red); }
     .stat-val.pnl-darkred { color: var(--red-dark); }
@@ -327,8 +327,8 @@
     .modal-btn.cancel:hover { border-color: var(--border-bright); color: var(--text); }
     .modal-btn.confirm { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
     .modal-btn.confirm:hover { background: #d4ff1a; }
-    #invModal .modal-btn.confirm { background: #5B7BA8; color: #000; border-color: #5B7BA8; }
-    #invModal .modal-btn.confirm:hover { background: #7a9bbf; }
+    #invModal .modal-btn.confirm { background: #6B9FD4; color: #000; border-color: #6B9FD4; }
+    #invModal .modal-btn.confirm:hover { background: #8dbde8; }
     .modal-btn.danger { background: transparent; color: var(--red); border-color: rgba(255,68,68,0.3); }
     .modal-btn.danger:hover { border-color: var(--red); background: rgba(255,68,68,0.06); }
 
@@ -388,11 +388,11 @@
 
 
     /* ── Memo ── */
-    #section-memo .btn-sm.sort-active { border-color: rgba(94,138,110,0.4) !important; color: #5E8A6E !important; }
-    #memoModal .modal-btn.confirm { background: #5E8A6E; color: #000; border-color: #5E8A6E; }
-    #memoModal .modal-btn.confirm:hover { background: #7aaa8e; }
-    #predModal .modal-btn.confirm { background: #5E8A6E; color: #000; border-color: #5E8A6E; }
-    #predModal .modal-btn.confirm:hover { background: #7aaa8e; }
+    #section-memo .btn-sm.sort-active { border-color: rgba(109,184,142,0.4) !important; color: #6DB88E !important; }
+    #memoModal .modal-btn.confirm { background: #6DB88E; color: #000; border-color: #6DB88E; }
+    #memoModal .modal-btn.confirm:hover { background: #8ecfaa; }
+    #predModal .modal-btn.confirm { background: #6DB88E; color: #000; border-color: #6DB88E; }
+    #predModal .modal-btn.confirm:hover { background: #8ecfaa; }
     .memo-card {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 2px; margin-bottom: 8px; overflow: hidden;
@@ -417,14 +417,14 @@
     .pred-row-main { display: flex; align-items: center; gap: 8px; }
     .pred-row:first-of-type { border-top: none; }
     .pred-date { color: var(--text-dim); flex: 0 0 70px; }
-    .pred-price { color: #5E8A6E; font-weight: 600; flex: 1; }
+    .pred-price { color: #6DB88E; font-weight: 600; flex: 1; }
     .pred-note { color: var(--text-dim); font-size: 9px; flex: 2; font-style: italic; }
     .memo-add-pred {
       display: flex; align-items: center; justify-content: center;
       padding: 6px; border-top: 1px solid var(--border);
       cursor: pointer; transition: background 0.15s;
     }
-    .memo-add-pred:hover { background: rgba(94,138,110,0.04); }
+    .memo-add-pred:hover { background: rgba(109,184,142,0.04); }
 
     #pnlProgressWrap { margin: 0 0 8px; }
 
@@ -473,9 +473,9 @@
       <div style="position:sticky;top:0;background:#000;z-index:10;padding:10px 0 0">
         <!-- Row 1: summary blocks + add button -->
         <div style="display:flex;gap:8px;align-items:stretch;margin-bottom:6px">
-          <div class="inv-summary-cell" style="flex:1;border-color:rgba(91,123,168,0.5)">
+          <div class="inv-summary-cell" style="flex:1;border-color:rgba(107,159,212,0.5)">
             <div class="summary-label">INVESTIS €</div>
-            <div class="summary-value" id="totalEur" style="color:#5B7BA8">—</div>
+            <div class="summary-value" id="totalEur" style="color:#6B9FD4">—</div>
             <div class="summary-sub-eur" id="subEur"></div>
           </div>
           <div class="inv-summary-cell" style="flex:1;border-color:rgba(0,230,118,0.3)">
@@ -483,7 +483,7 @@
             <div class="summary-value" id="totalUsd" style="color:#00e676">—</div>
             <div class="summary-sub-usd" id="subUsd"></div>
           </div>
-          <button class="btn-sm icon-only" onclick="openInvModal()" title="Ajouter" style="align-self:stretch;padding:0 12px;border-color:rgba(91,123,168,0.4);color:#5B7BA8">
+          <button class="btn-sm icon-only" onclick="openInvModal()" title="Ajouter" style="align-self:stretch;padding:0 12px;border-color:rgba(107,159,212,0.4);color:#6B9FD4">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
@@ -517,12 +517,12 @@
             <div class="summary-value" id="suiviTotalInv" style="color:var(--green)">—</div>
             <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--green);opacity:0.75;margin-top:2px" id="suiviSubInv"></div>
           </div>
-          <div class="inv-summary-cell" style="flex:1;border-color:rgba(139,107,139,0.3)">
+          <div class="inv-summary-cell" style="flex:1;border-color:rgba(181,136,181,0.3)">
             <div class="summary-label">SUIVI $</div>
             <div class="summary-value" id="suiviTotalSuivi" style="color:var(--yellow)">—</div>
             <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--yellow);opacity:0.75;margin-top:2px" id="suiviSubSuivi"></div>
           </div>
-          <button class="btn-sm icon-only" onclick="openChartModal()" title="Répartition" style="align-self:stretch;padding:0 12px;border-color:rgba(139,107,139,0.4);color:#8B6B8B">
+          <button class="btn-sm icon-only" onclick="openChartModal()" title="Répartition" style="align-self:stretch;padding:0 12px;border-color:rgba(181,136,181,0.4);color:#B588B5">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
               <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>
               <path d="M22 12A10 10 0 0 0 12 2v10z"/>
@@ -580,7 +580,7 @@
               Date
             </button>
           </div>
-          <button class="btn-sm icon-only" onclick="openMemoModal()" title="Ajouter une crypto" style="border-color:rgba(94,138,110,0.4);color:#5E8A6E">
+          <button class="btn-sm icon-only" onclick="openMemoModal()" title="Ajouter une crypto" style="border-color:rgba(109,184,142,0.4);color:#6DB88E">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
@@ -596,7 +596,7 @@
       </div>
       <!-- Loading progress bar -->
       <div id="memoProgressWrap" style="display:none;height:1.5px;background:var(--border);margin-bottom:6px;overflow:hidden">
-        <div id="memoProgress" style="height:100%;background:#5E8A6E;width:0%;transition:width 0.4s ease"></div>
+        <div id="memoProgress" style="height:100%;background:#6DB88E;width:0%;transition:width 0.4s ease"></div>
       </div>
       <div id="memoContainer">
         <div class="empty-state">
@@ -614,7 +614,7 @@
             <div class="summary-cell"><div class="summary-label">Total PnL</div><div class="summary-value" id="sumPnl">—</div><div class="summary-sub" id="subPnl" style="font-family:'DM Mono',monospace;font-size:9px;margin-top:2px"></div></div>
             <div class="summary-cell"><div class="summary-label">24h</div><div class="summary-value" id="sum24h">—</div><div class="summary-sub" id="sub24h" style="font-family:'DM Mono',monospace;font-size:9px;margin-top:2px"></div></div>
           </div>
-          <button class="btn-sm icon-only" onclick="openCryptoModal()" title="Ajouter" style="align-self:stretch;padding:0 12px;border-color:rgba(138,115,85,0.4);color:#8A7355">
+          <button class="btn-sm icon-only" onclick="openCryptoModal()" title="Ajouter" style="align-self:stretch;padding:0 12px;border-color:rgba(181,149,106,0.4);color:#B5956A">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
@@ -654,7 +654,7 @@
       </div>
       <!-- Loading progress bar -->
       <div id="pnlProgressWrap" style="display:none;height:1.5px;background:var(--border);margin-bottom:6px;overflow:hidden">
-        <div id="pnlProgress" style="height:100%;background:#8A7355;border-radius:2px;width:0%;transition:width 0.4s ease"></div>
+        <div id="pnlProgress" style="height:100%;background:#B5956A;border-radius:2px;width:0%;transition:width 0.4s ease"></div>
       </div>
       <div class="crypto-list" id="cryptoList">
         <div class="empty-state" id="pnlEmpty">
@@ -1018,8 +1018,8 @@
     if (allBtn) {
       const isAll = activeFilters.size === 0;
       allBtn.classList.toggle('sort-active', isAll);
-      allBtn.style.borderColor = isAll ? 'rgba(138,115,85,0.4)' : '';
-      allBtn.style.color = isAll ? '#8A7355' : '';
+      allBtn.style.borderColor = isAll ? 'rgba(181,149,106,0.4)' : '';
+      allBtn.style.color = isAll ? '#B5956A' : '';
     }
     ['CEX','DEX','WALLET'].forEach(c => {
       const btn = document.getElementById('filter' + c);
@@ -1708,8 +1708,8 @@
     if (allBtn) {
       const isAll = activeInvCats.size === 0;
       allBtn.classList.toggle('sort-active', isAll);
-      allBtn.style.borderColor = isAll ? 'rgba(91,123,168,0.4)' : '';
-      allBtn.style.color = isAll ? '#5B7BA8' : '';
+      allBtn.style.borderColor = isAll ? 'rgba(107,159,212,0.4)' : '';
+      allBtn.style.color = isAll ? '#6B9FD4' : '';
     }
 
     // Category buttons
@@ -1996,16 +1996,16 @@
 
   function updateMemoFilterUI() {
     const allBtn = document.getElementById('memoFilterAll');
-    const hColors  = { court: '#00f5ff',              moyen: '#8B6B8B',              long: '#8A7355'              };
-    const hBorders = { court: 'rgba(0,245,255,0.5)',   moyen: 'rgba(139,107,139,0.5)', long: 'rgba(138,115,85,0.5)' };
-    const hBgs     = { court: 'rgba(0,245,255,0.08)',  moyen: 'rgba(139,107,139,0.08)',long: 'rgba(138,115,85,0.08)'};
+    const hColors  = { court: '#00f5ff',              moyen: '#B588B5',              long: '#B5956A'              };
+    const hBorders = { court: 'rgba(0,245,255,0.5)',   moyen: 'rgba(181,136,181,0.5)', long: 'rgba(181,149,106,0.5)' };
+    const hBgs     = { court: 'rgba(0,245,255,0.08)',  moyen: 'rgba(181,136,181,0.08)',long: 'rgba(181,149,106,0.08)'};
 
     // TOUS button
     if (allBtn) {
       const isAll = !memoHorizonFilter;
       allBtn.classList.toggle('sort-active', isAll);
-      allBtn.style.borderColor = isAll ? 'rgba(94,138,110,0.4)' : '';
-      allBtn.style.color       = isAll ? '#5E8A6E' : '';
+      allBtn.style.borderColor = isAll ? 'rgba(109,184,142,0.4)' : '';
+      allBtn.style.color       = isAll ? '#6DB88E' : '';
     }
 
     // Horizon buttons — same pattern as inv/suivi filters
@@ -2086,7 +2086,7 @@
     ['court','moyen','long'].forEach(k => {
       const btn = document.getElementById('horiz' + k.charAt(0).toUpperCase() + k.slice(1));
       if (!btn) return;
-      const colors = { court: '#00f5ff', moyen: '#8B6B8B', long: '#8A7355' };
+      const colors = { court: '#00f5ff', moyen: '#B588B5', long: '#B5956A' };
       const on = k === h;
       btn.classList.toggle('active', on);
       btn.style.borderColor = on ? colors[k] : '';
@@ -2192,7 +2192,7 @@
         const predDate = new Date(p.date);
         const diffMonths = (predDate - today) / (1000 * 60 * 60 * 24 * 30);
         const autoHorizon = diffMonths <= 3 ? 'court' : diffMonths <= 12 ? 'moyen' : 'long';
-        const hColors = { court: '#00f5ff', moyen: '#8B6B8B', long: '#8A7355' };
+        const hColors = { court: '#00f5ff', moyen: '#B588B5', long: '#B5956A' };
         const hLabels = { court: 'COURT', moyen: 'MOYEN', long: 'LONG' };
         const hColor = hColors[autoHorizon];
 
@@ -2207,7 +2207,7 @@
             <span class="pred-date">${formatDate(p.date)}</span>
             <span class="pred-price">$ ${fmt(p.price)}</span>
             ${pctStr ? `<span style="font-family:'DM Mono',monospace;font-size:9px;color:${pctHausse>=0?'var(--green)':'var(--red)'};flex:0 0 auto">${pctStr}</span>` : ''}
-            <span style="font-family:'DM Mono',monospace;font-size:8px;padding:1px 5px;border-radius:2px;border:1px solid ${hColor};color:${hColor};flex:0 0 auto">${hLabels[autoHorizon]}</span>
+            <span style="font-family:'DM Mono',monospace;font-size:8px;padding:1px 5px;border-radius:2px;border:1px solid rgba(255,255,255,0.4);color:rgba(255,255,255,0.8);flex:0 0 auto">${hLabels[autoHorizon]}</span>
             <div class="card-actions" style="margin-left:auto">
               <button class="card-btn edit" onclick="openPredModal(${mi}, ${realPi})">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -2234,7 +2234,7 @@
         ${m.note ? `<div class="memo-note-text">${m.note}</div>` : ''}
         ${predsHtml}
         <div class="memo-add-pred" onclick="openPredModal(${mi})">
-          <span style="font-family:'DM Mono',monospace;font-size:10px;color:#5E8A6E;letter-spacing:0.1em">+ PRÉDICTION</span>
+          <span style="font-family:'DM Mono',monospace;font-size:10px;color:#6DB88E;letter-spacing:0.1em">+ PRÉDICTION</span>
         </div>
       `;
       container.appendChild(card);
@@ -2404,8 +2404,8 @@
     if (allBtn) {
       const isAll = activeSuiviCats.size === 0;
       allBtn.classList.toggle('sort-active', isAll);
-      allBtn.style.borderColor = isAll ? 'rgba(91,123,168,0.4)' : '';
-      allBtn.style.color = isAll ? '#5B7BA8' : '';
+      allBtn.style.borderColor = isAll ? 'rgba(107,159,212,0.4)' : '';
+      allBtn.style.color = isAll ? '#6B9FD4' : '';
     }
     ['CEX','DEX','WALLET'].forEach(c => {
       const btn = document.getElementById('suiviFilter' + c);
@@ -2545,7 +2545,7 @@
         ? 'rgba(255,255,255,0.35)'
         : cat === 'DEX'
         ? 'rgba(255,140,0,0.5)'
-        : 'rgba(91,123,168,0.5)';
+        : 'rgba(107,159,212,0.5)';
       header.className = 'suivi-header';
       header.style.background = '';
       header.style.border = '1px solid ' + borderColor;
@@ -2630,7 +2630,7 @@
     document.getElementById('chartModal').classList.add('open');
     const countEl = document.getElementById('chartCount'); if (countEl) countEl.textContent = '(' + items.length + ')';
 
-    const colors = ['#8A7355','#5B7BA8','#8B6B8B','#00e676','#FF6D00','#00f5ff','#ff5722','#9c27b0','#03a9f4','#8bc34a','#ffc107','#f06292'];
+    const colors = ['#B5956A','#6B9FD4','#B588B5','#00e676','#FF6D00','#00f5ff','#ff5722','#9c27b0','#03a9f4','#8bc34a','#ffc107','#f06292'];
     const bars = document.getElementById('chartBars');
     bars.innerHTML = '';
     const maxVal = items[0].value; // already sorted desc
