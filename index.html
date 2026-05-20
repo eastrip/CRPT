@@ -2576,7 +2576,7 @@
           : `<span class="card-icon-placeholder">${entry.sym.slice(0,2)}</span>`;
         row.innerHTML = `
           ${sIconHtml}
-          <span class="suivi-sym" style="${entry.changed ? 'color:var(--text-muted)' : entry.sym === 'USDC' ? 'color:var(--green)' : ''}">${entry.sym}</span>
+          <span class="suivi-sym" style="${entry.changed ? 'color:var(--text-muted)' : entry.sym === 'USDC' ? 'color:#2775CA' : ''}">${entry.sym}</span>
           <span class="suivi-amount" style="${entry.changed ? 'color:var(--text-muted)' : ''}">$ ${fmt(entry.amount)}</span>
           ${!entry.changed && entry.sym !== 'USDC' ? `<span class="suivi-target">→ $ ${fmt(target)}</span><span class="suivi-obj-pct">+${entry.objectif ?? 5} %</span>` : ''}
           <div class="card-actions" style="margin-left:auto">
