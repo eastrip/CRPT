@@ -966,7 +966,7 @@
       refreshPrices();
       const wrap = document.getElementById('pnlProgressWrap');
       const bar  = document.getElementById('pnlProgress');
-      if (wrap && appData.cryptos.length) { wrap.style.display = 'block'; if (bar) bar.style.width = '0 %'; }
+      if (wrap && appData.cryptos.length) { wrap.style.display = 'block'; if (bar) bar.style.width = '0%'; }
     }
     else if (tab === 'suivi') renderSuivi();
     else if (tab === 'memo') {
@@ -1143,7 +1143,7 @@
         // Show progress bar
         const wrap = document.getElementById('pnlProgressWrap');
         const bar  = document.getElementById('pnlProgress');
-        if (wrap) { wrap.style.display = 'block'; if (bar) bar.style.width = '0 %'; }
+        if (wrap) { wrap.style.display = 'block'; if (bar) bar.style.width = '0%'; }
         setTimeout(() => {
           appData.cryptos.forEach(c => {
             if (!BYBIT_ONLY.has(c.symbol) && !liveData[c.symbol]) {
