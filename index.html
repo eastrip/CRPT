@@ -594,6 +594,10 @@
           <button class="btn-sm" id="memoFilterLong" onclick="setMemoHorizon('long')">LONG</button>
         </div>
       </div>
+      <!-- Loading progress bar -->
+      <div id="memoProgressWrap" style="display:none;height:1.5px;background:var(--border);margin-bottom:6px;overflow:hidden">
+        <div id="memoProgress" style="height:100%;background:#B2FF59;width:0%;transition:width 0.4s ease"></div>
+      </div>
       <div id="memoContainer">
         <div class="empty-state">
           <div class="empty-icon">✦</div>
@@ -967,12 +971,16 @@
     else if (tab === 'suivi') renderSuivi();
     else if (tab === 'memo') {
       renderMemo();
-      // Load live prices for memo symbols if not already streaming
       const memoSymbols = (appData.memo || []).map(m => m.sym);
       const missing = memoSymbols.filter(s => !liveData[s] || liveData[s].notFound);
       if (missing.length) {
         const allSymbols = [...new Set([...appData.cryptos.map(c => c.symbol), ...memoSymbols])];
         startStreams(allSymbols);
+        // Show memo progress bar
+        const mw = document.getElementById('memoProgressWrap');
+        const mb = document.getElementById('memoProgress');
+        if (mw) { mw.style.display = 'block'; if (mb) mb.style.width = '0%'; }
+        updateMemoProgress();
       }
     }
     else {
@@ -1207,6 +1215,20 @@
 
     if (!binanceSyms.length && !bybitSyms.length) return;
     setTimeout(() => document.getElementById('refreshBtn').classList.remove('spinning'), 5000);
+  }
+
+  function updateMemoProgress() {
+    const symbols = (appData.memo || []).map(m => m.sym);
+    const total = symbols.length;
+    if (!total) return;
+    const loaded = symbols.filter(s => liveData[s] && !liveData[s].notFound).length;
+    const pct = Math.round((loaded / total) * 100);
+    const bar  = document.getElementById('memoProgress');
+    const wrap = document.getElementById('memoProgressWrap');
+    if (bar) bar.style.width = pct + '%';
+    if (pct >= 100 && wrap) {
+      setTimeout(() => { wrap.style.display = 'none'; }, 800);
+    }
   }
 
   function updatePnlProgress() {
