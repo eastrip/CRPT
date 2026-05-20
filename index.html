@@ -1166,7 +1166,8 @@
           const open  = parseFloat(d.o);
           liveData[sym] = { price, change24h: open > 0 ? ((price - open) / open) * 100 : 0 };
           updatePnlProgress();
-          renderCryptos();
+          updateMemoProgress();
+          if (document.querySelector('.tab.pnl.active')) renderCryptos();
           if (document.querySelector('.tab.memo.active')) renderMemo();
         } catch {}
       };
@@ -1201,7 +1202,8 @@
           const change24h = parseFloat(msg.data.price24hPcnt) * 100;
           liveData[sym] = { price, change24h };
           updatePnlProgress();
-          renderCryptos();
+          updateMemoProgress();
+          if (document.querySelector('.tab.pnl.active')) renderCryptos();
           if (document.querySelector('.tab.memo.active')) renderMemo();
         } catch {}
       };
