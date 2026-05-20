@@ -972,16 +972,16 @@
     else if (tab === 'memo') {
       renderMemo();
       const memoSymbols = (appData.memo || []).map(m => m.sym);
+      // Always show progress bar and load prices
+      const mw = document.getElementById('memoProgressWrap');
+      const mb = document.getElementById('memoProgress');
+      if (mw && memoSymbols.length) { mw.style.display = 'block'; if (mb) mb.style.width = '0%'; }
       const missing = memoSymbols.filter(s => !liveData[s] || liveData[s].notFound);
       if (missing.length) {
         const allSymbols = [...new Set([...appData.cryptos.map(c => c.symbol), ...memoSymbols])];
         startStreams(allSymbols);
-        // Show memo progress bar
-        const mw = document.getElementById('memoProgressWrap');
-        const mb = document.getElementById('memoProgress');
-        if (mw) { mw.style.display = 'block'; if (mb) mb.style.width = '0%'; }
-        updateMemoProgress();
       }
+      updateMemoProgress();
     }
     else {
       wsActive = false;
