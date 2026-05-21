@@ -329,8 +329,8 @@
     .modal-btn.confirm:hover { background: #d4ff1a; }
     #invModal .modal-btn.confirm { background: #6B9FD4; color: #000; border-color: #6B9FD4; }
     #invModal .modal-btn.confirm:hover { background: #8ab5d9; }
-    .modal-btn.danger { background: transparent; color: var(--red); border-color: rgba(242,54,69,0.3); }
-    .modal-btn.danger:hover { border-color: var(--red); background: rgba(242,54,69,0.06); }
+    .modal-btn.danger { background: var(--red); color: #000; border-color: var(--red); font-weight: 600; }
+    .modal-btn.danger:hover { background: #d42f3d; border-color: #d42f3d; }
 
     /* restore */
     .file-drop {
@@ -927,7 +927,7 @@
       <p id="confirmText" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text-dim);letter-spacing:.08em;line-height:1.7;margin-bottom:20px;"></p>
       <div class="modal-actions">
         <button class="modal-btn cancel" onclick="closeConfirmModal()">ANNULER</button>
-        <button class="modal-btn danger" onclick="doConfirmedDelete()" style="background:#ffffff;color:#000;border-color:#ffffff">SUPPRIMER</button>
+        <button class="modal-btn danger" onclick="doConfirmedDelete()">SUPPRIMER</button>
       </div>
     </div>
   </div>
@@ -1995,9 +1995,9 @@
 
   function updateMemoFilterUI() {
     const allBtn = document.getElementById('memoFilterAll');
-    const hColors  = { court: '#00f5ff',              moyen: '#B588B5',              long: '#B5956A'              };
-    const hBorders = { court: 'rgba(0,245,255,0.5)',   moyen: 'rgba(181,136,181,0.5)', long: 'rgba(181,149,106,0.5)' };
-    const hBgs     = { court: 'rgba(0,245,255,0.08)',  moyen: 'rgba(181,136,181,0.08)',long: 'rgba(181,149,106,0.08)'};
+    const hColors  = { court: '#ffffff',              moyen: '#ffffff',              long: '#ffffff'              };
+    const hBorders = { court: 'rgba(255,255,255,0.5)', moyen: 'rgba(255,255,255,0.5)', long: 'rgba(255,255,255,0.5)' };
+    const hBgs     = { court: 'rgba(255,255,255,0.06)', moyen: 'rgba(255,255,255,0.06)', long: 'rgba(255,255,255,0.06)'};
 
     // TOUS button
     if (allBtn) {
