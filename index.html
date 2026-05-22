@@ -1407,6 +1407,8 @@
       const pct = globalT.buy > 0 ? (globalT.pnl / globalT.buy) * 100 : null;
       sumPnlEl.textContent = (globalT.pnl >= 0 ? '+' : '') + '$ ' + fmt(Math.abs(globalT.pnl)) + (pct != null ? ' (' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + ' %)' : '');
       sumPnlEl.className = 'summary-value ' + (globalT.pnl >= 0 ? 'up' : 'down');
+      const pnlCell = sumPnlEl.closest('.summary-cell');
+      if (pnlCell) pnlCell.style.borderColor = globalT.pnl >= 0 ? 'rgba(8,153,129,0.5)' : 'rgba(242,54,69,0.5)';
       if (subPnlEl) {
         if (isFiltered && filteredT.hasPnl && filteredT.pnl !== globalT.pnl) {
           const fpct = filteredT.buy > 0 ? (filteredT.pnl / filteredT.buy) * 100 : null;
@@ -1422,6 +1424,8 @@
       const pct = globalT.base24 > 0 ? (globalT.val24 / globalT.base24) * 100 : 0;
       sum24hEl.textContent = '$ ' + fmt(Math.abs(globalT.val24)) + ' (' + (pct >= 0 ? '+' : '') + pct.toFixed(2) + ' %)';
       sum24hEl.className = 'summary-value ' + (globalT.val24 >= 0 ? 'up' : 'down');
+      const h24Cell = sum24hEl.closest('.summary-cell');
+      if (h24Cell) h24Cell.style.borderColor = globalT.val24 >= 0 ? 'rgba(8,153,129,0.5)' : 'rgba(242,54,69,0.5)';
       if (sub24hEl) {
         if (isFiltered && filteredT.has24h && filteredT.val24 !== globalT.val24) {
           const fpct = filteredT.base24 > 0 ? (filteredT.val24 / filteredT.base24) * 100 : 0;
