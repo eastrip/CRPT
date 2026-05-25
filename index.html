@@ -973,6 +973,8 @@
     else if (tab === 'memo') {
       renderMemo();
       const memoSymbols = (appData.memo || []).map(m => m.sym);
+      // Prefetch icons for memo symbols
+      if (memoSymbols.length) prefetchIcons(memoSymbols).then(() => renderMemo());
       // Always show progress bar and load prices
       const mw = document.getElementById('memoProgressWrap');
       const mb = document.getElementById('memoProgress');
