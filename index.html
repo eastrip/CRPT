@@ -1393,21 +1393,18 @@
             </button>
           </div>
         </div>
-        <div class="card-row2" style="display:flex;width:100%">
-          <div style="flex:1"></div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;flex:0 0 auto;padding-right:16px">
-            <span class="stat-lbl">Achat</span>
-            <span class="card-buy" style="white-space:nowrap">$ ${fmt(crypto.buyPrice)}</span>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;flex:0 0 auto;padding-right:16px">
-            <span class="stat-lbl">Marché</span>
-            <span class="card-price" style="white-space:nowrap"><svg style="width:9px;height:9px;margin-right:2px;vertical-align:middle;color:var(--text-muted)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>${price != null ? '$ ' + fmt(price) : '<span class="loading-dot"></span>'}</span>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;flex:0 0 auto">
-            <span class="stat-lbl">ATH</span>
-            <span class="card-ath" style="white-space:nowrap;margin:0">${ath ? '$ ' + fmt(ath) + '<span class="card-ath-val">' + athPctStr + '</span>' : '—'}</span>
-          </div>
-        </div>
+        <table class="card-row2" style="width:100%;border-collapse:collapse;table-layout:auto">
+          <tr>
+            <td style="width:34%;text-align:left" class="stat-lbl">Achat</td>
+            <td style="width:33%;text-align:left" class="stat-lbl">Marché</td>
+            <td style="width:33%;text-align:left" class="stat-lbl">ATH</td>
+          </tr>
+          <tr>
+            <td style="text-align:left;white-space:nowrap"><span class="card-buy">$ ${fmt(crypto.buyPrice)}</span></td>
+            <td style="text-align:left;white-space:nowrap"><span class="card-price">${price != null ? '$ ' + fmt(price) : '<span class="loading-dot"></span>'}</span></td>
+            <td style="text-align:left;white-space:nowrap"><span class="card-ath" style="margin:0">${ath ? '$ ' + fmt(ath) + '<span class="card-ath-val">' + athPctStr + '</span>' : '—'}</span></td>
+          </tr>
+        </table>
         </div>
         <div class="card-row3">
           <div class="card-stat">
