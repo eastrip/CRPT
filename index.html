@@ -1365,7 +1365,8 @@
         : `<span class="card-icon-placeholder">${crypto.symbol.slice(0,2)}</span>`;
       const ath = getATH(crypto.symbol);
       const athPct = ath && price ? (((price - ath) / ath) * 100) : null;
-      const athStr = ath ? '$\xa0' + fmt(ath) + (athPct != null ? ' (' + (athPct >= 0 ? '+' : '') + athPct.toFixed(1) + '\xa0%)' : '') : '—';
+      const athPctStr = athPct != null ? '\xa0(' + (athPct >= 0 ? '+' : '') + athPct.toFixed(0) + '\xa0%)' : '';
+      const athStr = ath ? '$\xa0' + fmt(ath) + athPctStr : '—';
       card.innerHTML = `
         <div class="card-row1">
           ${iconHtml}
@@ -1392,10 +1393,17 @@
             </button>
           </div>
         </div>
-        <div class="card-row2" style="display:flex;align-items:center;gap:0;width:100%">
-          <span class="card-buy" style="width:30%;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Ach. $ ${fmt(crypto.buyPrice)}</span>
-          <span class="card-price" style="width:30%;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><svg style="width:9px;height:9px;margin-right:2px;vertical-align:middle;color:var(--text-muted)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>${price != null ? '$ ' + fmt(price) : '<span class="loading-dot"></span>'}</span>
-          <span class="card-ath" style="width:40%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">ATH <span class="card-ath-val">${athStr}</span></span>
+        <div class="card-row2" style="display:flex;flex-direction:column;gap:2px;width:100%">
+          <div style="display:flex;width:100%;gap:0">
+            <span class="stat-lbl" style="width:33.33%;text-align:right">Achat</span>
+            <span class="stat-lbl" style="width:33.33%;text-align:right">Marché</span>
+            <span class="stat-lbl" style="width:33.33%;text-align:right">ATH</span>
+          </div>
+          <div style="display:flex;width:100%;gap:0;align-items:center">
+            <span class="card-buy" style="width:33.33%;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">$ ${fmt(crypto.buyPrice)}</span>
+            <span class="card-price" style="width:33.33%;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><svg style="width:9px;height:9px;margin-right:2px;vertical-align:middle;color:var(--text-muted)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>${price != null ? '$ ' + fmt(price) : '<span class="loading-dot"></span>'}</span>
+            <span class="card-ath" style="width:33.33%;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ath ? '$ ' + fmt(ath) + '<span class="card-ath-val">' + athPctStr + '</span>' : '—'}</span>
+          </div>
         </div>
         <div class="card-row3">
           <div class="card-stat">
