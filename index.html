@@ -1394,7 +1394,7 @@
         </div>
         <div class="card-row2" style="display:flex;align-items:center">
           <span class="card-buy" style="flex:1">Ach. $ ${fmt(crypto.buyPrice)}</span>
-          <span class="card-price" style="flex:1;text-align:center"><span class="stat-lbl">En cours </span>${price != null ? '$ ' + fmt(price) : '<span class="loading-dot"></span>'}</span>
+          <span class="card-price" style="flex:1;text-align:center"><svg style="width:9px;height:9px;margin-right:3px;vertical-align:middle;color:var(--text-muted)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>${price != null ? '$ ' + fmt(price) : '<span class="loading-dot"></span>'}</span>
           <span class="card-ath" style="flex:1;text-align:right">ATH <span class="card-ath-val">${athStr}</span></span>
         </div>
         <div class="card-row3">
