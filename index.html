@@ -985,8 +985,11 @@
     else if (tab === 'memo') {
       renderMemo();
       const memoSymbols = (appData.memo || []).map(m => m.sym);
-      // Prefetch icons for memo symbols
-      if (memoSymbols.length) prefetchIcons(memoSymbols).then(() => renderMemo());
+      // Prefetch icons and ATH for memo symbols
+      if (memoSymbols.length) {
+        prefetchIcons(memoSymbols).then(() => renderMemo());
+        fetchATH(memoSymbols).then(() => renderMemo());
+      }
       // Always show progress bar and load prices
       const mw = document.getElementById('memoProgressWrap');
       const mb = document.getElementById('memoProgress');
@@ -1554,6 +1557,7 @@
     if (editingIdx >= 0) {
       appData.cryptos[editingIdx] = { ...appData.cryptos[editingIdx], symbol, buyPrice, qty, category };
       saveData(); closeCryptoModal(); renderCryptos();
+      prefetchIcons([symbol]); restartStream();
       showToast('Crypto modifiée', 'success');
     } else {
       appData.cryptos.push({ symbol, buyPrice, qty, category });
