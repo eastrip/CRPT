@@ -1367,7 +1367,7 @@
         ? `<img class="card-icon" src="${iconUrl}" alt="${crypto.symbol}" onerror="this.style.display='none'">`
         : `<span class="card-icon-placeholder">${crypto.symbol.slice(0,2)}</span>`;
       const ath = getATH(crypto.symbol);
-      const athPct = ath && price ? (((price - ath) / ath) * 100) : null;
+      const athPct = ath && price ? (((ath - price) / price) * 100) : null;
       const athPctStr = athPct != null ? '\xa0(' + (athPct >= 0 ? '+' : '') + athPct.toFixed(0) + '\xa0%)' : '';
       const athStr = ath ? '$\xa0' + fmt(ath) + athPctStr : '—';
       card.innerHTML = `
@@ -2249,7 +2249,7 @@
       const memoBuyPrice = memoCrypto ? memoCrypto.buyPrice : null;
       const memoPriceStr = memoLive && memoLive.price ? '$ ' + fmt(memoLive.price) : '';
       const memoAth = getATH(m.sym);
-      const memoAthPct = memoAth && memoLive && memoLive.price ? (((memoLive.price - memoAth) / memoAth) * 100) : null;
+      const memoAthPct = memoAth && memoLive && memoLive.price ? (((memoAth - memoLive.price) / memoLive.price) * 100) : null;
       const memoAthStr = memoAth ? '$ ' + fmt(memoAth) + (memoAthPct != null ? ' (' + (memoAthPct >= 0 ? '+' : '') + memoAthPct.toFixed(0) + ' %)' : '') : null;
       const card = document.createElement('div');
       card.className = 'memo-card';
