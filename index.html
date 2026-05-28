@@ -1468,9 +1468,23 @@
     if (globalT.hasPnl) {
       const pct = globalT.buy > 0 ? (globalT.pnl / globalT.buy) * 100 : null;
       sumPnlEl.textContent = (globalT.pnl >= 0 ? '+' : '') + '$ ' + fmt(Math.abs(globalT.pnl)) + (pct != null ? ' (' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + ' %)' : '');
-      sumPnlEl.className = 'summary-value ' + (globalT.pnl >= 0 ? 'up' : 'down');
+      const pnlPctGlobal = globalT.buy > 0 ? (globalT.pnl / globalT.buy) * 100 : null;
+      const pnlColor = globalT.pnl >= 0 ? '#089981'
+        : pnlPctGlobal == null ? '#F23645'
+        : pnlPctGlobal >= -25 ? '#FFD600'
+        : pnlPctGlobal >= -50 ? '#ff8c00'
+        : pnlPctGlobal >= -75 ? '#F23645'
+        : '#8B1A24';
+      const pnlBorder = globalT.pnl >= 0 ? 'rgba(8,153,129,0.5)'
+        : pnlPctGlobal == null ? 'rgba(242,54,69,0.5)'
+        : pnlPctGlobal >= -25 ? 'rgba(255,214,0,0.5)'
+        : pnlPctGlobal >= -50 ? 'rgba(255,140,0,0.5)'
+        : pnlPctGlobal >= -75 ? 'rgba(242,54,69,0.5)'
+        : 'rgba(139,26,36,0.5)';
+      sumPnlEl.className = 'summary-value';
+      sumPnlEl.style.color = pnlColor;
       const pnlCell = sumPnlEl.closest('.summary-cell');
-      if (pnlCell) pnlCell.style.borderColor = globalT.pnl >= 0 ? 'rgba(8,153,129,0.5)' : 'rgba(242,54,69,0.5)';
+      if (pnlCell) pnlCell.style.borderColor = pnlBorder;
       if (subPnlEl) {
         if (isFiltered && filteredT.hasPnl && filteredT.pnl !== globalT.pnl) {
           const fpct = filteredT.buy > 0 ? (filteredT.pnl / filteredT.buy) * 100 : null;
@@ -2266,8 +2280,6 @@
         const autoHorizon = diffMonths <= 3 ? 'court' : diffMonths <= 12 ? 'moyen' : 'long';
         const hColors = { court: '#ffffff', moyen: '#ffffff', long: '#ffffff' };
         const hLabels = { court: 'COURT', moyen: 'MOYEN', long: 'LONG' };
-        const hColor = hColors[autoHorizon];
-
         // % hausse depuis prix live
         const livePnl = liveData[m.sym];
         const currentPrice = livePnl ? livePnl.price : null;
