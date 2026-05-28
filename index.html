@@ -947,6 +947,15 @@
 <div class="toast" id="toast"></div>
 
 <script>
+
+  // ── localStorage polyfill (fallback for file:// on iOS) ──
+  const _memStore = {};
+  const _ls = (() => {
+    try { localStorage.setItem('__test__', '1'); localStorage.removeItem('__test__'); return localStorage; }
+    catch { return { getItem: k => _memStore[k] ?? null, setItem: (k,v) => { _memStore[k] = v; }, removeItem: k => { delete _memStore[k]; }, clear: () => { Object.keys(_memStore).forEach(k => delete _memStore[k]); } };
+    }
+  })();
+
   let appData = JSON.parse(localStorage.getItem('portfolioData') || 'null') || {
     investments: [], cryptos: [], createdAt: new Date().toISOString()
   };
