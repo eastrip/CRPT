@@ -948,13 +948,6 @@
 
 <script>
 
-  // ── localStorage polyfill (fallback for file:// on iOS) ──
-  const _memStore = {};
-  const _ls = (() => {
-    try { localStorage.setItem('__test__', '1'); localStorage.removeItem('__test__'); return localStorage; }
-    catch { return { getItem: k => _memStore[k] ?? null, setItem: (k,v) => { _memStore[k] = v; }, removeItem: k => { delete _memStore[k]; }, clear: () => { Object.keys(_memStore).forEach(k => delete _memStore[k]); } };
-    }
-  })();
 
   let appData = JSON.parse(localStorage.getItem('portfolioData') || 'null') || {
     investments: [], cryptos: [], createdAt: new Date().toISOString()
@@ -986,6 +979,8 @@
       prefetchIcons(pnlSyms);
       fetchATH(pnlSyms).then(() => renderCryptos());
       refreshPrices();
+      if (window._athInterval) clearInterval(window._athInterval);
+      window._athInterval = setInterval(() => { fetchATH(appData.cryptos.map(c => c.symbol)).then(() => renderCryptos()); }, 60 * 60 * 1000);
       const wrap = document.getElementById('pnlProgressWrap');
       const bar  = document.getElementById('pnlProgress');
       if (wrap && appData.cryptos.length) { wrap.style.display = 'block'; if (bar) bar.style.width = '0%'; }
@@ -1294,7 +1289,7 @@
 
   async function fetchATH(symbols) {
     const now = Date.now();
-    const TTL = 24 * 60 * 60 * 1000;
+    const TTL = 60 * 60 * 1000; // 1 heure
     const toFetch = symbols.filter(s => {
       const id = cgId(s);
       const cached = athCache[id];
