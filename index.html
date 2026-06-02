@@ -1478,7 +1478,7 @@
     // Total PnL
     if (globalT.hasPnl) {
       const pct = globalT.buy > 0 ? (globalT.pnl / globalT.buy) * 100 : null;
-      sumPnlEl.textContent = (globalT.pnl >= 0 ? '+' : '') + '$ ' + fmt(Math.abs(globalT.pnl)) + (pct != null ? ' (' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + ' %)' : '');
+      sumPnlEl.innerHTML = (globalT.pnl >= 0 ? '+' : '') + '$ ' + fmt(Math.abs(globalT.pnl)) + (pct != null ? '<br><span style="font-size:11px">(' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + ' %)</span>' : '');
       const pnlPctGlobal = globalT.buy > 0 ? (globalT.pnl / globalT.buy) * 100 : null;
       const pnlColor = globalT.pnl >= 0 ? '#089981'
         : pnlPctGlobal == null ? '#F23645'
@@ -1504,12 +1504,12 @@
           subPnlEl.style.opacity = '0.75';
         } else { subPnlEl.textContent = ''; }
       }
-    } else { sumPnlEl.textContent = '—'; sumPnlEl.className = 'summary-value'; if (subPnlEl) subPnlEl.textContent = ''; }
+    } else { sumPnlEl.innerHTML = '—'; sumPnlEl.className = 'summary-value'; if (subPnlEl) subPnlEl.textContent = ''; }
 
     // 24h
     if (globalT.has24h) {
       const pct = globalT.base24 > 0 ? (globalT.val24 / globalT.base24) * 100 : 0;
-      sum24hEl.textContent = '$ ' + fmt(Math.abs(globalT.val24)) + ' (' + (pct >= 0 ? '+' : '') + pct.toFixed(2) + ' %)';
+      sum24hEl.innerHTML = '$ ' + fmt(Math.abs(globalT.val24)) + '<br><span style="font-size:11px">(' + (pct >= 0 ? '+' : '') + pct.toFixed(2) + ' %)</span>';
       sum24hEl.className = 'summary-value ' + (globalT.val24 >= 0 ? 'up' : 'down');
       const h24Cell = sum24hEl.closest('.summary-cell');
       if (h24Cell) h24Cell.style.borderColor = globalT.val24 >= 0 ? 'rgba(8,153,129,0.5)' : 'rgba(242,54,69,0.5)';
@@ -1521,7 +1521,7 @@
           sub24hEl.style.opacity = '0.75';
         } else { sub24hEl.textContent = ''; }
       }
-    } else { sum24hEl.textContent = '—'; sum24hEl.className = 'summary-value'; if (sub24hEl) sub24hEl.textContent = ''; }
+    } else { sum24hEl.innerHTML = '—'; sum24hEl.className = 'summary-value'; if (sub24hEl) sub24hEl.textContent = ''; }
   }
 
   function fmt(n) {
@@ -2631,8 +2631,8 @@
     const pctGlobal = allPlatformInv > 0 ? (allPlatformSuivi / allPlatformInv) * 100 : null;
     const pctFilt   = filtInv > 0 ? (filtSuivi / filtInv) * 100 : null;
     if (invEl) invEl.textContent = allPlatformInv > 0 ? '$ ' + fmt(allPlatformInv) : '—';
-    if (suiviEl) suiviEl.textContent = allPlatformSuivi > 0
-      ? '$ ' + fmt(allPlatformSuivi) + (pctGlobal != null ? ' (' + pctGlobal.toFixed(1) + ' %)' : '')
+    if (suiviEl) suiviEl.innerHTML = allPlatformSuivi > 0
+      ? '$ ' + fmt(allPlatformSuivi) + (pctGlobal != null ? '<br><span style="font-size:11px">(' + pctGlobal.toFixed(1) + ' %)</span>' : '')
       : '—';
     if (subInvEl) subInvEl.textContent = (isFiltered && filtInv !== allPlatformInv) ? 'dont $ ' + fmt(filtInv) : '';
     // Compute total USDC available across visible platforms
