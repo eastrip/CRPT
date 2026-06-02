@@ -442,14 +442,14 @@
     /* ── Toast ── */
     .toast {
       position: fixed; bottom: 70px; left: 50%;
-      transform: translateX(-50 %) translateY(10px);
+      transform: translateX(-50%) translateY(10px);
       background: var(--surface); border: 1px solid var(--border-bright);
       border-radius: 2px; padding: 11px 18px;
       font-family: 'DM Mono', monospace; font-size: 11px;
       letter-spacing: 0.1em; color: var(--text);
       opacity: 0; transition: all 0.2s; pointer-events: none; white-space: nowrap; z-index: 200;
     }
-    .toast.show { opacity: 1; transform: translateX(-50 %) translateY(0); }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     .toast.success { border-color: rgba(200,255,0,0.3); color: var(--accent); }
     .toast.error { border-color: rgba(242,54,69,0.3); color: var(--red); }
 
@@ -466,16 +466,16 @@
 
   <header>
     <button class="tab investments active" onclick="switchTab('investments')">
-      <span>◈</span> Invests
+      Invests
     </button>
     <button class="tab suivi" onclick="switchTab('suivi')">
-      <span>◎</span> Suivi
+      <span style="letter-spacing:0">Suivi (<span id="suiviCountFiltered"></span><span id="suiviCount">0</span>)</span>
     </button>
     <button class="tab memo" onclick="switchTab('memo')">
-      <span>✦</span> Memo
+      Memo
     </button>
     <button class="tab pnl" onclick="switchTab('pnl')">
-      <span>▲</span> <span style="letter-spacing:0">PnL (<span id="cryptoCount">0</span>)</span>
+      <span style="letter-spacing:0">PnL (<span id="cryptoCount">0</span>)</span>
     </button>
   </header>
 
@@ -547,6 +547,7 @@
             <button class="btn-sm filter-btn" id="suiviFilterCEX" onclick="toggleSuiviCat('CEX')">CEX</button>
             <button class="btn-sm filter-btn" id="suiviFilterDEX" onclick="toggleSuiviCat('DEX')">DEX</button>
             <button class="btn-sm filter-btn" id="suiviFilterWALLET" onclick="toggleSuiviCat('WALLET')">WAL</button>
+            <button class="btn-sm filter-btn" id="suiviFilterUSDC" onclick="toggleSuiviUSDC()" style="color:#2775CA;border-color:rgba(39,117,202,0.3)">USDC</button>
           </div>
           <div style="display:flex;gap:6px">
             <button class="btn-sm sort-btn" id="suiviSortAmt" onclick="setSuiviSort('amount')" title="Trier par valeur" >
@@ -948,8 +949,14 @@
 
 <script>
 
+  // ── Safe localStorage wrapper ──
+  const store = {
+    get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
+    set: (k, v) => { try { localStorage.setItem(k, v); } catch {} },
+    remove: (k) => { try { localStorage.removeItem(k); } catch {} }
+  };
 
-  let appData = JSON.parse(localStorage.getItem('portfolioData') || 'null') || {
+  let appData = JSON.parse(store.get('portfolioData') || 'null') || {
     investments: [], cryptos: [], createdAt: new Date().toISOString()
   };
   if (!appData.cryptos) appData.cryptos = [];
@@ -972,39 +979,40 @@
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelector(`.tab.${tab}`).classList.add('active');
     document.getElementById(`section-${tab}`).classList.add('active');
-    localStorage.setItem('portfolioTab', tab);
+    store.set('portfolioTab', tab);
     const mainEl = document.querySelector('main'); if (mainEl) mainEl.scrollTop = 0;
     if (tab === 'pnl') {
-      const pnlSyms = appData.cryptos.map(c => c.symbol);
-      prefetchIcons(pnlSyms);
-      fetchATH(pnlSyms).then(() => renderCryptos());
-      refreshPrices();
-      if (window._athInterval) clearInterval(window._athInterval);
-      window._athInterval = setInterval(() => { fetchATH(appData.cryptos.map(c => c.symbol)).then(() => renderCryptos()); }, 60 * 60 * 1000);
-      const wrap = document.getElementById('pnlProgressWrap');
-      const bar  = document.getElementById('pnlProgress');
-      if (wrap && appData.cryptos.length) { wrap.style.display = 'block'; if (bar) bar.style.width = '0%'; }
+      try {
+        const pnlSyms = appData.cryptos.map(c => c.symbol);
+        prefetchIcons(pnlSyms);
+        fetchATH(pnlSyms).then(() => renderCryptos()).catch(() => {});
+        refreshPrices();
+        if (window._athInterval) clearInterval(window._athInterval);
+        window._athInterval = setInterval(() => { fetchATH(appData.cryptos.map(c => c.symbol)).then(() => renderCryptos()).catch(() => {}); }, 60 * 60 * 1000);
+        const wrap = document.getElementById('pnlProgressWrap');
+        const bar  = document.getElementById('pnlProgress');
+        if (wrap && appData.cryptos.length) { wrap.style.display = 'block'; if (bar) bar.style.width = '0%'; }
+      } catch(e) {}
     }
     else if (tab === 'suivi') renderSuivi();
     else if (tab === 'memo') {
-      renderMemo();
-      const memoSymbols = (appData.memo || []).map(m => m.sym);
-      // Prefetch icons and ATH for memo symbols
-      if (memoSymbols.length) {
-        prefetchIcons(memoSymbols).then(() => renderMemo());
-        fetchATH(memoSymbols).then(() => renderMemo());
-      }
-      // Always show progress bar and load prices
-      const mw = document.getElementById('memoProgressWrap');
-      const mb = document.getElementById('memoProgress');
-      if (mw && memoSymbols.length) { mw.style.display = 'block'; if (mb) mb.style.width = '0%'; }
-      // Always start streams for memo symbols
-      if (memoSymbols.length) {
-        wsActive = true;
-        const allSymbols = [...new Set([...appData.cryptos.map(c => c.symbol), ...memoSymbols])];
-        startStreams(allSymbols);
-      }
-      updateMemoProgress();
+      try {
+        renderMemo();
+        const memoSymbols = (appData.memo || []).map(m => m.sym);
+        if (memoSymbols.length) {
+          prefetchIcons(memoSymbols).then(() => renderMemo()).catch(() => {});
+          fetchATH(memoSymbols).then(() => renderMemo()).catch(() => {});
+        }
+        const mw = document.getElementById('memoProgressWrap');
+        const mb = document.getElementById('memoProgress');
+        if (mw && memoSymbols.length) { mw.style.display = 'block'; if (mb) mb.style.width = '0%'; }
+        if (memoSymbols.length) {
+          wsActive = true;
+          const allSymbols = [...new Set([...appData.cryptos.map(c => c.symbol), ...memoSymbols])];
+          startStreams(allSymbols);
+        }
+        updateMemoProgress();
+      } catch(e) { }
     }
     else {
       wsActive = false;
@@ -1014,15 +1022,15 @@
     }
   }
 
-  let _rawSort = localStorage.getItem('portfolioSort') || null;
+  let _rawSort = store.get('portfolioSort') || null;
   if (_rawSort === 'pnl')  _rawSort = 'pnl-desc';
   if (_rawSort === '24h')  _rawSort = '24h-desc';
   let currentSort = _rawSort; // null | 'pnl-desc' | 'pnl-asc' | '24h-desc' | '24h-asc'
-  let activeFilters = new Set(JSON.parse(localStorage.getItem('portfolioFilters') || 'null') || []);
+  let activeFilters = new Set(JSON.parse(store.get('portfolioFilters') || 'null') || []);
 
   function clearFilters() {
     activeFilters.clear();
-    localStorage.removeItem('portfolioFilters');
+    store.remove('portfolioFilters');
     updateFilterUI();
     renderCryptos();
   }
@@ -1030,7 +1038,7 @@
   function toggleCat(cat) {
     if (activeFilters.has(cat)) activeFilters.delete(cat);
     else activeFilters.add(cat);
-    localStorage.setItem('portfolioFilters', JSON.stringify([...activeFilters]));
+    store.set('portfolioFilters', JSON.stringify([...activeFilters]));
     updateFilterUI();
     renderCryptos();
   }
@@ -1054,8 +1062,8 @@
     if (currentSort === type + '-desc') currentSort = type + '-asc';
     else if (currentSort === type + '-asc') currentSort = null;
     else currentSort = type + '-desc';
-    if (currentSort) localStorage.setItem('portfolioSort', currentSort);
-    else localStorage.removeItem('portfolioSort');
+    if (currentSort) store.set('portfolioSort', currentSort);
+    else store.remove('portfolioSort');
     updateSortUI();
     renderCryptos();
   }
@@ -1092,7 +1100,6 @@
     ENA:'ethena',
     HYPE:'hyperliquid',
     USDC:'usd-coin',
-    ARB:'arbitrum',
     POL:'polygon-ecosystem-token',
     'ARB ONE':'arbitrum'
   };
@@ -1101,7 +1108,7 @@
   // ── Crypto icons ──
   // Icon cache with TTL — { url, ts } per symbol
   let _rawIconCache = {};
-  try { _rawIconCache = JSON.parse(localStorage.getItem('iconCache') || '{}'); } catch {}
+  try { _rawIconCache = JSON.parse(store.get('iconCache') || '{}'); } catch {}
   // Migrate old format (plain string → object)
   Object.keys(_rawIconCache).forEach(k => {
     if (typeof _rawIconCache[k] === 'string') _rawIconCache[k] = { url: _rawIconCache[k], ts: 0 };
@@ -1120,7 +1127,7 @@
       const url = data.image && data.image.small;
       if (url) {
         iconCache[symbol] = { url, ts: Date.now() };
-        try { localStorage.setItem('iconCache', JSON.stringify(iconCache)); } catch {}
+        try { store.set('iconCache', JSON.stringify(iconCache)); } catch {}
       }
       return url || null;
     } catch { return null; }
@@ -1285,7 +1292,7 @@
 
   // ATH cache
   let athCache = {};
-  try { athCache = JSON.parse(localStorage.getItem('athCache') || '{}'); } catch {}
+  try { athCache = JSON.parse(store.get('athCache') || '{}'); } catch {}
 
   async function fetchATH(symbols) {
     const now = Date.now();
@@ -1304,7 +1311,7 @@
       data.forEach(coin => {
         athCache[coin.id] = { ath: coin.ath, ts: now };
       });
-      localStorage.setItem('athCache', JSON.stringify(athCache));
+      store.set('athCache', JSON.stringify(athCache));
     } catch {}
   }
 
@@ -1363,7 +1370,7 @@
         return 'pnl-darkred';
       })();
       const chgClass = change == null ? '' : change >= 0 ? 'up' : 'down';
-      const pnlStr = pnl == null ? '—' : (pnl >= 0 ? '+' : '-') + '$ ' + fmt(Math.abs(pnl)) + (pnlPct != null ? ' (' + (pnlPct >= 0 ? '+' : '') + pnlPct.toFixed(1) + ' %)' : '');
+      const pnlStr = pnl == null ? '—' : (pnl >= 0 ? '+' : '-') + '$ ' + fmt(Math.abs(pnl)) + (pnlPct != null ? ' (' + (pnlPct >= 0 ? '+' : '') + pnlPct.toFixed(1) + ' %)' : '');
       const chgStr = change == null ? '—' : (change >= 0 ? '+' : '') + change.toFixed(2) + ' %';
       const notFound = liveData[crypto.symbol]?.notFound;
       const iconUrl = iconCache[crypto.symbol]?.url || null;
@@ -1471,7 +1478,7 @@
     // Total PnL
     if (globalT.hasPnl) {
       const pct = globalT.buy > 0 ? (globalT.pnl / globalT.buy) * 100 : null;
-      sumPnlEl.textContent = (globalT.pnl >= 0 ? '+' : '') + '$ ' + fmt(Math.abs(globalT.pnl)) + (pct != null ? ' (' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + ' %)' : '');
+      sumPnlEl.textContent = (globalT.pnl >= 0 ? '+' : '') + '$ ' + fmt(Math.abs(globalT.pnl)) + (pct != null ? ' (' + (pct >= 0 ? '+' : '') + pct.toFixed(1) + ' %)' : '');
       const pnlPctGlobal = globalT.buy > 0 ? (globalT.pnl / globalT.buy) * 100 : null;
       const pnlColor = globalT.pnl >= 0 ? '#089981'
         : pnlPctGlobal == null ? '#F23645'
@@ -1492,7 +1499,7 @@
       if (subPnlEl) {
         if (isFiltered && filteredT.hasPnl && filteredT.pnl !== globalT.pnl) {
           const fpct = filteredT.buy > 0 ? (filteredT.pnl / filteredT.buy) * 100 : null;
-          subPnlEl.textContent = 'dont ' + (filteredT.pnl >= 0 ? '+' : '') + '$ ' + fmt(Math.abs(filteredT.pnl)) + (fpct != null ? ' (' + (fpct >= 0 ? '+' : '') + fpct.toFixed(1) + ' %)' : '');
+          subPnlEl.textContent = 'dont ' + (filteredT.pnl >= 0 ? '+' : '') + '$ ' + fmt(Math.abs(filteredT.pnl)) + (fpct != null ? ' (' + (fpct >= 0 ? '+' : '') + fpct.toFixed(1) + ' %)' : '');
           subPnlEl.style.color = filteredT.pnl >= 0 ? 'var(--green)' : 'var(--red)';
           subPnlEl.style.opacity = '0.75';
         } else { subPnlEl.textContent = ''; }
@@ -1502,14 +1509,14 @@
     // 24h
     if (globalT.has24h) {
       const pct = globalT.base24 > 0 ? (globalT.val24 / globalT.base24) * 100 : 0;
-      sum24hEl.textContent = '$ ' + fmt(Math.abs(globalT.val24)) + ' (' + (pct >= 0 ? '+' : '') + pct.toFixed(2) + ' %)';
+      sum24hEl.textContent = '$ ' + fmt(Math.abs(globalT.val24)) + ' (' + (pct >= 0 ? '+' : '') + pct.toFixed(2) + ' %)';
       sum24hEl.className = 'summary-value ' + (globalT.val24 >= 0 ? 'up' : 'down');
       const h24Cell = sum24hEl.closest('.summary-cell');
       if (h24Cell) h24Cell.style.borderColor = globalT.val24 >= 0 ? 'rgba(8,153,129,0.5)' : 'rgba(242,54,69,0.5)';
       if (sub24hEl) {
         if (isFiltered && filteredT.has24h && filteredT.val24 !== globalT.val24) {
           const fpct = filteredT.base24 > 0 ? (filteredT.val24 / filteredT.base24) * 100 : 0;
-          sub24hEl.textContent = 'dont $ ' + fmt(Math.abs(filteredT.val24)) + ' (' + (fpct >= 0 ? '+' : '') + fpct.toFixed(2) + ' %)';
+          sub24hEl.textContent = 'dont $ ' + fmt(Math.abs(filteredT.val24)) + ' (' + (fpct >= 0 ? '+' : '') + fpct.toFixed(2) + ' %)';
           sub24hEl.style.color = filteredT.val24 >= 0 ? 'var(--green)' : 'var(--red)';
           sub24hEl.style.opacity = '0.75';
         } else { sub24hEl.textContent = ''; }
@@ -1616,7 +1623,7 @@
 
   // ── Persist ──
   function saveData() {
-    localStorage.setItem('portfolioData', JSON.stringify(appData));
+    store.set('portfolioData', JSON.stringify(appData));
     // Clean iconCache — keep only symbols used in the app
     const usedSymbols = new Set([
       ...appData.cryptos.map(c => c.symbol),
@@ -1627,7 +1634,7 @@
     Object.keys(iconCache).forEach(k => {
       if (!usedSymbols.has(k)) { delete iconCache[k]; dirty = true; }
     });
-    if (dirty) try { localStorage.setItem('iconCache', JSON.stringify(iconCache)); } catch {}
+    if (dirty) try { store.set('iconCache', JSON.stringify(iconCache)); } catch {}
   }
 
   // ── Backup ──
@@ -1747,13 +1754,13 @@
   });
 
   // ── Investment filters ──
-  let activeInvCats = new Set(JSON.parse(localStorage.getItem('invCatsFilter') || '[]'));
-  let activeInvSubs = new Set(JSON.parse(localStorage.getItem('invSubsFilter') || '[]'));
+  let activeInvCats = new Set(JSON.parse(store.get('invCatsFilter') || '[]'));
+  let activeInvSubs = new Set(JSON.parse(store.get('invSubsFilter') || '[]'));
 
   function resetInvFilter() {
     activeInvCats.clear();
     activeInvSubs.clear();
-    try { localStorage.removeItem('invCatsFilter'); localStorage.removeItem('invSubsFilter'); } catch {}
+    try { store.remove('invCatsFilter'); store.remove('invSubsFilter'); } catch {}
     updateInvFilterUI();
     renderInvestments();
   }
@@ -1767,8 +1774,8 @@
       activeInvCats.add(cat);
     }
     try {
-      localStorage.setItem('invCatsFilter', JSON.stringify([...activeInvCats]));
-      localStorage.setItem('invSubsFilter', JSON.stringify([...activeInvSubs]));
+      store.set('invCatsFilter', JSON.stringify([...activeInvCats]));
+      store.set('invSubsFilter', JSON.stringify([...activeInvSubs]));
     } catch {}
     updateInvFilterUI();
     renderInvestments();
@@ -1777,7 +1784,7 @@
   function toggleInvSub(platform) {
     if (activeInvSubs.has(platform)) activeInvSubs.delete(platform);
     else activeInvSubs.add(platform);
-    try { localStorage.setItem('invSubsFilter', JSON.stringify([...activeInvSubs])); } catch {}
+    try { store.set('invSubsFilter', JSON.stringify([...activeInvSubs])); } catch {}
     renderInvestments();
   }
 
@@ -1946,7 +1953,7 @@
       saveData(); renderInvestments();
       showToast('Investissement supprimé', 'success');
     } else if (pendingDeleteType === 'suivi') {
-      appData.suivi[editingSuiviPlatform].splice(pendingDeleteIdx, 1);
+      if (appData.suivi[editingSuiviPlatform]) appData.suivi[editingSuiviPlatform].splice(pendingDeleteIdx, 1);
       saveData(); renderSuivi();
       showToast('Entrée supprimée', 'success');
     } else if (pendingDeleteType === 'memo') {
@@ -1954,7 +1961,7 @@
       saveData(); renderMemo();
       showToast('Crypto supprimée', 'success');
     } else if (pendingDeleteType === 'pred') {
-      appData.memo[editingPredMemoIdx].preds.splice(pendingDeleteIdx, 1);
+      if (appData.memo[editingPredMemoIdx]?.preds) appData.memo[editingPredMemoIdx].preds.splice(pendingDeleteIdx, 1);
       saveData(); renderMemo();
       showToast('Prédiction supprimée', 'success');
     } else {
@@ -2001,12 +2008,12 @@
     });
     if (subEurEl) {
       if (activeInvCats.size > 0 && filteredEur !== totalEur) {
-        subEurEl.textContent = 'dont ' + fmtCurrency(filteredEur, '€');
+        subEurEl.textContent = 'dont ' + fmtCurrency(filteredEur, '€');
       } else { subEurEl.textContent = ''; }
     }
     if (subUsdEl) {
       if (activeInvCats.size > 0 && filteredUsd !== totalUsd) {
-        subUsdEl.textContent = 'dont ' + fmtCurrency(filteredUsd, '$');
+        subUsdEl.textContent = 'dont ' + fmtCurrency(filteredUsd, '$');
       } else { subUsdEl.textContent = ''; }
     }
     updateInvFilterUI();
@@ -2066,14 +2073,14 @@
   let editingPredMemoIdx = -1;
   let editingPredIdx = -1;
 
-  let memoSort = localStorage.getItem('memoSort') || null;
-  let memoHorizonFilter = localStorage.getItem('memoHorizon') || null; // null | 'court' | 'moyen' | 'long'
+  let memoSort = store.get('memoSort') || null;
+  let memoHorizonFilter = store.get('memoHorizon') || null; // null | 'court' | 'moyen' | 'long'
 
   function setMemoHorizon(h) {
     memoHorizonFilter = h;
     try {
-      if (h) localStorage.setItem('memoHorizon', h);
-      else localStorage.removeItem('memoHorizon');
+      if (h) store.set('memoHorizon', h);
+      else store.remove('memoHorizon');
     } catch {}
     updateMemoFilterUI();
     renderMemo();
@@ -2109,8 +2116,8 @@
     else if (memoSort === type + '-asc') memoSort = null;
     else memoSort = type + '-desc';
     try {
-      if (memoSort) localStorage.setItem('memoSort', memoSort);
-      else localStorage.removeItem('memoSort');
+      if (memoSort) store.set('memoSort', memoSort);
+      else store.remove('memoSort');
     } catch {}
     updateMemoSortUI();
     renderMemo();
@@ -2268,7 +2275,7 @@
       const memoPriceStr = memoLive && memoLive.price ? '$ ' + fmt(memoLive.price) : '';
       const memoAth = getATH(m.sym);
       const memoAthPct = memoAth && memoLive && memoLive.price ? (((memoAth - memoLive.price) / memoLive.price) * 100) : null;
-      const memoAthStr = memoAth ? '$ ' + fmt(memoAth) + (memoAthPct != null ? ' (' + (memoAthPct >= 0 ? '+' : '') + memoAthPct.toFixed(0) + ' %)' : '') : null;
+      const memoAthStr = memoAth ? '$ ' + fmt(memoAth) + (memoAthPct != null ? ' (' + (memoAthPct >= 0 ? '+' : '') + memoAthPct.toFixed(0) + ' %)' : '') : null;
       const card = document.createElement('div');
       card.className = 'memo-card';
       let predsHtml = '';
@@ -2426,22 +2433,23 @@
     setTimeout(() => document.getElementById('confirmModal').classList.add('open'), 200);
   }
 
-  let _rawSuiviSort = localStorage.getItem('suiviSort') || null;
+  let _rawSuiviSort = store.get('suiviSort') || null;
   // Migrate old format (e.g. 'amount' → 'amount-desc')
   if (_rawSuiviSort === 'amount') _rawSuiviSort = 'amount-desc';
   if (_rawSuiviSort === 'alpha')  _rawSuiviSort = 'alpha-desc';
   if (_rawSuiviSort === 'none')   _rawSuiviSort = null;
   let suiviSort = _rawSuiviSort; // null | 'amount-desc' | 'amount-asc' | 'alpha-desc' | 'alpha-asc'
-  let activeSuiviCats = new Set(JSON.parse(localStorage.getItem('suiviCatsFilter') || '[]'));
-  let activeSuiviSubs = new Set(JSON.parse(localStorage.getItem('suiviSubsFilter') || '[]'));
+  let activeSuiviCats = new Set(JSON.parse(store.get('suiviCatsFilter') || '[]'));
+  let activeSuiviSubs = new Set(JSON.parse(store.get('suiviSubsFilter') || '[]'));
+  let suiviUSDCFilter = false;
 
   function setSuiviSort(type) {
     if (suiviSort === type + '-desc') suiviSort = type + '-asc';
     else if (suiviSort === type + '-asc') suiviSort = null;
     else suiviSort = type + '-desc';
     try {
-      if (suiviSort) localStorage.setItem('suiviSort', suiviSort);
-      else localStorage.removeItem('suiviSort');
+      if (suiviSort) store.set('suiviSort', suiviSort);
+      else store.remove('suiviSort');
     } catch {}
     updateSuiviSortUI();
     renderSuivi();
@@ -2462,7 +2470,13 @@
   function resetSuiviFilter() {
     activeSuiviCats.clear();
     activeSuiviSubs.clear();
-    try { localStorage.removeItem('suiviCatsFilter'); localStorage.removeItem('suiviSubsFilter'); } catch {}
+    try { store.remove('suiviCatsFilter'); store.remove('suiviSubsFilter'); } catch {}
+    updateSuiviFilterUI();
+    renderSuivi();
+  }
+
+  function toggleSuiviUSDC() {
+    suiviUSDCFilter = !suiviUSDCFilter;
     updateSuiviFilterUI();
     renderSuivi();
   }
@@ -2475,8 +2489,8 @@
       activeSuiviCats.add(cat);
     }
     try {
-      localStorage.setItem('suiviCatsFilter', JSON.stringify([...activeSuiviCats]));
-      localStorage.setItem('suiviSubsFilter', JSON.stringify([...activeSuiviSubs]));
+      store.set('suiviCatsFilter', JSON.stringify([...activeSuiviCats]));
+      store.set('suiviSubsFilter', JSON.stringify([...activeSuiviSubs]));
     } catch {}
     updateSuiviFilterUI();
     renderSuivi();
@@ -2485,7 +2499,7 @@
   function toggleSuiviSub(platform) {
     if (activeSuiviSubs.has(platform)) activeSuiviSubs.delete(platform);
     else activeSuiviSubs.add(platform);
-    try { localStorage.setItem('suiviSubsFilter', JSON.stringify([...activeSuiviSubs])); } catch {}
+    try { store.set('suiviSubsFilter', JSON.stringify([...activeSuiviSubs])); } catch {}
     updateSuiviFilterUI();
     renderSuivi();
   }
@@ -2512,6 +2526,12 @@
       btn.style.color       = on ? COLORS[c].color  : 'var(--text-dim)';
       btn.style.background  = on ? COLORS[c].bg     : 'transparent';
     });
+    const usdcBtn = document.getElementById('suiviFilterUSDC');
+    if (usdcBtn) {
+      usdcBtn.style.borderColor = suiviUSDCFilter ? 'rgba(39,117,202,0.8)' : 'rgba(39,117,202,0.3)';
+      usdcBtn.style.color = '#2775CA';
+      usdcBtn.style.background = suiviUSDCFilter ? 'rgba(39,117,202,0.12)' : 'transparent';
+    }
     // Sub-filter row
     const subRow = document.getElementById('suiviSubFilterRow');
     const sep = document.getElementById('suiviFilterSep');
@@ -2547,6 +2567,23 @@
     if (!container) return;
     container.innerHTML = '';
 
+    // Update suivi count
+    const suiviTotal = Object.values(appData.suivi || {}).reduce((acc, entries) => acc + entries.filter(e => !e.changed && e.sym !== 'USDC').length, 0);
+    const suiviCountEl = document.getElementById('suiviCount');
+    const suiviCountFilteredEl = document.getElementById('suiviCountFiltered');
+    const activeSuiviCatsArr = [...(activeSuiviCats || new Set())];
+    if (activeSuiviCatsArr.length > 0) {
+      const filteredPlatforms = (appData.investments || []).filter(i => activeSuiviCatsArr.includes(i.category)).map(i => i.platform);
+      const suiviFiltered = Object.entries(appData.suivi || {}).reduce((acc, [plat, entries]) => {
+        if (filteredPlatforms.includes(plat)) return acc + entries.filter(e => !e.changed && e.sym !== 'USDC').length;
+        return acc;
+      }, 0);
+      if (suiviCountFilteredEl) suiviCountFilteredEl.textContent = suiviFiltered + '/';
+    } else {
+      if (suiviCountFilteredEl) suiviCountFilteredEl.textContent = '';
+    }
+    if (suiviCountEl) suiviCountEl.textContent = suiviTotal;
+
     // Get all platforms from investments
     const platforms = [...new Set(appData.investments.map(i => i.platform))];
 
@@ -2564,6 +2601,13 @@
           return inv && activeSuiviCats.has(inv.category || 'CEX');
         })
       : platforms;
+    if (suiviUSDCFilter) {
+      filteredPlatforms = filteredPlatforms.filter(p => {
+        const entries = appData.suivi[p] || [];
+        const usdc = entries.find(e => e.sym === 'USDC');
+        return usdc && usdc.amount > 0;
+      });
+    }
     if (activeSuiviSubs.size > 0) {
       filteredPlatforms = filteredPlatforms.filter(p => activeSuiviSubs.has(p));
     }
@@ -2588,12 +2632,20 @@
     const pctFilt   = filtInv > 0 ? (filtSuivi / filtInv) * 100 : null;
     if (invEl) invEl.textContent = allPlatformInv > 0 ? '$ ' + fmt(allPlatformInv) : '—';
     if (suiviEl) suiviEl.textContent = allPlatformSuivi > 0
-      ? '$ ' + fmt(allPlatformSuivi) + (pctGlobal != null ? '  (' + pctGlobal.toFixed(1) + ' %)' : '')
+      ? '$ ' + fmt(allPlatformSuivi) + (pctGlobal != null ? ' (' + pctGlobal.toFixed(1) + ' %)' : '')
       : '—';
     if (subInvEl) subInvEl.textContent = (isFiltered && filtInv !== allPlatformInv) ? 'dont $ ' + fmt(filtInv) : '';
-    if (subSuiviEl) subSuiviEl.textContent = (isFiltered && filtSuivi !== allPlatformSuivi)
-      ? 'dont $ ' + fmt(filtSuivi) + (pctFilt != null ? '  (' + pctFilt.toFixed(1) + ' %)' : '')
-      : '';
+    // Compute total USDC available across visible platforms
+    const totalUSDC = filteredPlatforms.reduce((acc, p) => {
+      const usdc = (appData.suivi[p] || []).find(e => e.sym === 'USDC');
+      return acc + (usdc ? usdc.amount : 0);
+    }, 0);
+    if (subSuiviEl) {
+      const parts = [];
+      if (isFiltered && filtSuivi !== allPlatformSuivi && !suiviUSDCFilter) parts.push('dont $ ' + fmt(filtSuivi) + (pctFilt != null ? '  (' + pctFilt.toFixed(1) + ' %)' : ''));
+      if (totalUSDC > 0) parts.push('USDC dispo $ ' + fmt(totalUSDC));
+      subSuiviEl.textContent = parts.join('  ·  ');
+    }
 
     // Prefetch icons for all suivi entries
     const suiviSymbols = [...new Set(Object.values(appData.suivi).flat().map(e => e.sym))];
@@ -2785,7 +2837,7 @@
     updateMemoSortUI();
     updateMemoFilterUI();
     updateSuiviFilterUI();
-    const savedTab = localStorage.getItem('portfolioTab') || 'investments';
+    const savedTab = store.get('portfolioTab') || 'investments';
     if (savedTab === 'pnl') switchTab('pnl');
     else if (savedTab === 'suivi') switchTab('suivi');
     else if (savedTab === 'memo') switchTab('memo');
