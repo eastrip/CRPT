@@ -165,7 +165,7 @@
     .summary-label { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1px; }
     .summary-sub-eur { font-family: 'DM Mono', monospace; font-size: 9px; color: #3366EE; margin-top: 2px; opacity: 0.75; }
     .summary-sub-usd { font-family: 'DM Mono', monospace; font-size: 9px; color: #089981; margin-top: 2px; opacity: 0.75; }
-    .summary-value { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; }
+    .summary-value { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500; word-break: break-word; }
     .summary-value.up { color: var(--green); }
     .summary-value.down { color: var(--red); }
 
@@ -621,7 +621,7 @@
     <div class="section" id="section-pnl">
       <!-- Row 1: summary blocks + add button -->
       <div style="position:sticky;top:0;background:#000;z-index:10;padding:10px 0 0">
-        <div style="display:flex;gap:8px;align-items:stretch;margin-bottom:6px;justify-content:flex-end">
+        <div style="display:flex;gap:8px;align-items:stretch;margin-bottom:6px">
           <div class="summary-bar" id="summaryBar" style="display:none;flex:1;grid-template-columns:1fr 1fr;margin:0">
             <div class="summary-cell" style="border-color:rgba(242,54,69,0.4)"><div class="summary-label">Total PnL</div><div class="summary-value" id="sumPnl">—</div><div class="summary-sub" id="subPnl" style="font-family:'DM Mono',monospace;font-size:9px;margin-top:2px"></div></div>
             <div class="summary-cell" style="border-color:rgba(8,153,129,0.4)"><div class="summary-label">24h</div><div class="summary-value" id="sum24h">—</div><div class="summary-sub" id="sub24h" style="font-family:'DM Mono',monospace;font-size:9px;margin-top:2px"></div></div>
