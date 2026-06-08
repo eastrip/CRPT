@@ -2630,7 +2630,6 @@
       s + appData.investments.filter(i => i.platform === p).reduce((ss, i) => ss + (i.usd || 0), 0), 0);
     const filtSuivi = filteredPlatforms.reduce((s, p) =>
       s + (appData.suivi[p] || []).reduce((ss, e) => ss + (e.amount || 0), 0), 0);
-    const isFiltered = activeSuiviCats.size > 0 || activeSuiviSubs.size > 0;
 
     const invEl = document.getElementById('suiviTotalInv');
     const suiviEl = document.getElementById('suiviTotalSuivi');
