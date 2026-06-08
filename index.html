@@ -1428,6 +1428,7 @@
             <span class="stat-lbl">24h</span>
             <span class="stat-val ${chgClass}">${chgStr}</span>
           </div>
+          ${(pnl != null && pnl < 0 && price != null && crypto.buyPrice > 0) ? `<span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--text-dim);margin-left:auto">+${(((crypto.buyPrice - price) / price) * 100).toFixed(1)} % → achat</span>` : ''}
         </div>
       `;
       list.appendChild(card);
