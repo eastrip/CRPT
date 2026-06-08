@@ -2573,11 +2573,19 @@
     const suiviCountEl = document.getElementById('suiviCount');
     const suiviCountFilteredEl = document.getElementById('suiviCountFiltered');
     const activeSuiviCatsArr = [...(activeSuiviCats || new Set())];
-    if (activeSuiviCatsArr.length > 0) {
-      const filteredPlatforms = (appData.investments || []).filter(i => activeSuiviCatsArr.includes(i.category)).map(i => i.platform);
-      const suiviFiltered = Object.entries(appData.suivi || {}).reduce((acc, [plat, entries]) => {
-        if (filteredPlatforms.includes(plat)) return acc + entries.filter(e => !e.changed && e.sym !== 'USDC').length;
-        return acc;
+    const isFiltered = activeSuiviCatsArr.length > 0 || suiviUSDCFilter;
+    if (isFiltered) {
+      let fp = activeSuiviCatsArr.length > 0
+        ? (appData.investments || []).filter(i => activeSuiviCatsArr.includes(i.category)).map(i => i.platform)
+        : Object.keys(appData.suivi || {});
+      if (suiviUSDCFilter) {
+        fp = fp.filter(p => {
+          const usdc = (appData.suivi[p] || []).find(e => e.sym === 'USDC');
+          return usdc && usdc.amount > 0;
+        });
+      }
+      const suiviFiltered = fp.reduce((acc, plat) => {
+        return acc + ((appData.suivi[plat] || []).filter(e => !e.changed && e.sym !== 'USDC').length);
       }, 0);
       if (suiviCountFilteredEl) suiviCountFilteredEl.textContent = suiviFiltered + '/';
     } else {
