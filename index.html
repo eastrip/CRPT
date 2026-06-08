@@ -208,7 +208,7 @@
     }
     .card-buy {
       font-family: 'DM Mono', monospace; font-size: 10px;
-      color: var(--text-muted); white-space: nowrap; margin-right: 10px;
+      color: var(--text-dim); white-space: nowrap; margin-right: 10px;
     }
     .card-price {
       font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500;
@@ -471,11 +471,11 @@
     <button class="tab suivi" onclick="switchTab('suivi')">
       <span style="letter-spacing:0">Suivi (<span id="suiviCountFiltered"></span><span id="suiviCount">0</span>)</span>
     </button>
+    <button class="tab pnl" onclick="switchTab('pnl')" style="text-transform:none">
+      <span style="letter-spacing:0">PnL (<span id="cryptoCount">0</span>)</span>
+    </button>
     <button class="tab memo" onclick="switchTab('memo')">
       Memo
-    </button>
-    <button class="tab pnl" onclick="switchTab('pnl')">
-      <span style="letter-spacing:0">PnL (<span id="cryptoCount">0</span>)</span>
     </button>
   </header>
 
