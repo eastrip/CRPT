@@ -769,6 +769,10 @@
           <option value="">-- Exchange --</option>
         </select>
       </div>
+      <div class="form-group">
+        <label class="form-label">Note</label>
+        <input class="form-input" id="invNote" type="text" placeholder="Optionnel…" style="font-size:16px" />
+      </div>
       <div class="modal-actions">
         <button class="modal-btn danger" id="invBtnDelete" style="display:none;margin-right:auto" onclick="askDeleteInv()">SUPPRIMER</button>
         <button class="modal-btn cancel" onclick="closeInvModal()">ANNULER</button>
@@ -1517,7 +1521,7 @@
       if (sub24hEl) {
         if (isFiltered && filteredT.has24h && filteredT.val24 !== globalT.val24) {
           const fpct = filteredT.base24 > 0 ? (filteredT.val24 / filteredT.base24) * 100 : 0;
-          sub24hEl.textContent = 'dont $ ' + fmt(Math.abs(filteredT.val24)) + ' (' + (fpct >= 0 ? '+' : '') + fpct.toFixed(2) + ' %)';
+          sub24hEl.textContent = 'dont $ ' + fmt(Math.abs(filteredT.val24)) + ' (' + (fpct >= 0 ? '+' : '') + fpct.toFixed(2) + ' %)';
           sub24hEl.style.color = filteredT.val24 >= 0 ? 'var(--green)' : 'var(--red)';
           sub24hEl.style.opacity = '0.75';
         } else { sub24hEl.textContent = ''; }
@@ -1883,6 +1887,7 @@
     document.getElementById('invDate').value = new Date().toISOString().split('T')[0];
     document.getElementById('invEur').value = '';
     document.getElementById('invUsd').value = '';
+    document.getElementById('invNote').value = '';
     selectInvCat('CEX');
     document.getElementById('invModal').classList.add('open');
   }
@@ -1898,6 +1903,7 @@
     document.getElementById('invUsd').value = inv.usd || '';
     selectInvCat(inv.category || 'CEX');
     document.getElementById('invPlatform').value = inv.platform || '';
+    document.getElementById('invNote').value = inv.note || '';
     document.getElementById('invModal').classList.add('open');
   }
 
@@ -1917,6 +1923,8 @@
     if (!platform) { showToast('Sélectionner un exchange / wallet', 'error'); return; }
 
     const entry = { date, eur, usd, category, platform };
+    const noteVal = (document.getElementById('invNote')?.value || '').trim();
+    if (noteVal) entry.note = noteVal;
     if (editingInvIdx >= 0) {
       const oldPlatform = appData.investments[editingInvIdx].platform;
       appData.investments[editingInvIdx] = entry;
@@ -2049,6 +2057,7 @@
           ${inv.eur ? `<span class="inv-amount-eur">${fmtCurrency(inv.eur, '€')}</span>` : ''}
           ${inv.usd ? `<span class="inv-amount-usd">${fmtCurrency(inv.usd, '$')}</span>` : ''}
         </div>
+        ${inv.note ? `<div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--text-muted);margin-top:2px;font-style:italic">${inv.note}</div>` : ''}
       `;
       list.appendChild(card);
     });
@@ -2568,7 +2577,7 @@
     if (!container) return;
     container.innerHTML = '';
 
-    // Update suivi count
+    // Update suivi count - total = all active cryptos, filtered = visible with current filters
     const suiviTotal = Object.values(appData.suivi || {}).reduce((acc, entries) => acc + entries.filter(e => !e.changed && e.sym !== 'USDC').length, 0);
     const suiviCountEl = document.getElementById('suiviCount');
     const suiviCountFilteredEl = document.getElementById('suiviCountFiltered');
@@ -2576,7 +2585,7 @@
     const isFiltered = activeSuiviCatsArr.length > 0 || suiviUSDCFilter;
     if (isFiltered) {
       let fp = activeSuiviCatsArr.length > 0
-        ? (appData.investments || []).filter(i => activeSuiviCatsArr.includes(i.category)).map(i => i.platform)
+        ? [...new Set((appData.investments || []).filter(i => activeSuiviCatsArr.includes(i.category)).map(i => i.platform))]
         : Object.keys(appData.suivi || {});
       if (suiviUSDCFilter) {
         fp = fp.filter(p => {
