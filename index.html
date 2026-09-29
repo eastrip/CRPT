@@ -989,8 +989,9 @@
       try {
         const pnlSyms = appData.cryptos.map(c => c.symbol);
         prefetchIcons(pnlSyms);
-        fetchATH(pnlSyms).then(() => renderCryptos()).catch(() => {});
+        renderCryptos();
         refreshPrices();
+        fetchATH(pnlSyms).then(() => renderCryptos()).catch(() => {});
         if (window._athInterval) clearInterval(window._athInterval);
         window._athInterval = setInterval(() => { fetchATH(appData.cryptos.map(c => c.symbol)).then(() => renderCryptos()).catch(() => {}); }, 60 * 60 * 1000);
         const wrap = document.getElementById('pnlProgressWrap');
