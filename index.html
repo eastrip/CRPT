@@ -1283,7 +1283,15 @@
     }
   }
 
+  // ── ATH cache ──
+  let athCache = {};
+  try { athCache = JSON.parse(store.get('athCache') || '{}'); } catch {}
+
   function refreshPrices() {
+    // Clear ATH cache and refetch
+    athCache = {};
+    try { store.remove('athCache'); } catch {}
+    fetchATH(appData.cryptos.map(c => c.symbol)).then(() => renderCryptos()).catch(() => {});
     if (!appData.cryptos.length) return;
     document.getElementById('refreshBtn').classList.add('spinning');
     startStreams(appData.cryptos.map(c => c.symbol));
@@ -1295,13 +1303,18 @@
 
   // ── Render ──
 
-  // ATH cache
-  let athCache = {};
-  try { athCache = JSON.parse(store.get('athCache') || '{}'); } catch {}
-
   async function fetchATH(symbols) {
     const now = Date.now();
     const TTL = 60 * 60 * 1000; // 1 heure
+    // Force refresh if current price exceeds cached ATH
+    symbols.forEach(s => {
+      const id = cgId(s);
+      const cached = athCache[id];
+      const live = liveData[s];
+      if (cached && live && live.price && live.price > cached.ath) {
+        delete athCache[id]; // invalidate stale ATH
+      }
+    });
     const toFetch = symbols.filter(s => {
       const id = cgId(s);
       const cached = athCache[id];
