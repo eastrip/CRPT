@@ -655,7 +655,7 @@
               </svg>
               24h
             </button>
-            <button class="btn-sm icon-only" id="refreshBtn" onclick="refreshPrices()" title="Actualiser">
+            <button class="btn-sm icon-only" id="refreshBtn" onclick="refreshPrices(true)" title="Actualiser">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="1 4 1 10 7 10"/>
                 <path d="M3.51 15a9 9 0 1 0 .49-4.95"/>
@@ -1287,11 +1287,13 @@
   let athCache = {};
   try { athCache = JSON.parse(store.get('athCache') || '{}'); } catch {}
 
-  function refreshPrices() {
-    // Clear ATH cache and refetch
-    athCache = {};
-    try { store.remove('athCache'); } catch {}
-    fetchATH(appData.cryptos.map(c => c.symbol)).then(() => renderCryptos()).catch(() => {});
+  function refreshPrices(clearAth = false) {
+    if (clearAth) {
+      // Only clear ATH cache when explicitly requested (refresh button)
+      athCache = {};
+      try { store.remove('athCache'); } catch {}
+      fetchATH(appData.cryptos.map(c => c.symbol)).then(() => renderCryptos()).catch(() => {});
+    }
     if (!appData.cryptos.length) return;
     document.getElementById('refreshBtn').classList.add('spinning');
     startStreams(appData.cryptos.map(c => c.symbol));
