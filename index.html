@@ -1302,13 +1302,13 @@
   async function fetchATH(symbols) {
     const now = Date.now();
     const TTL = 60 * 60 * 1000; // 1 heure
-    // Force refresh if current price exceeds cached ATH
+    // Invalide le cache si le prix live dépasse l'ATH connu
     symbols.forEach(s => {
       const id = cgId(s);
       const cached = athCache[id];
       const live = liveData[s];
       if (cached && live && live.price && live.price > cached.ath) {
-        delete athCache[id]; // invalidate stale ATH
+        delete athCache[id];
       }
     });
     const toFetch = symbols.filter(s => {
